@@ -1249,6 +1249,43 @@ function loadScriptOnce(src){
   return loadedScripts[src];
 }
 
+/* ---- PDF'lerde Türkçe karakterlerin (ğ,ş,ı,İ,ö,ç,ü) doğru görünmesi için
+        jsPDF'in varsayılan fontu yerine gerçek bir TTF gömülür. ---- */
+var TR_FONT_NAME='RobotoTR';
+var trFontPromise=null;
+function arrayBufferToBase64(buf){
+  var bytes=new Uint8Array(buf);
+  var binary='';
+  var chunk=0x8000;
+  for(var i=0;i<bytes.length;i+=chunk){
+    binary+=String.fromCharCode.apply(null,bytes.subarray(i,i+chunk));
+  }
+  return btoa(binary);
+}
+function fetchFontBase64(url){
+  return fetch(url).then(function(r){
+    if(!r.ok) throw new Error('Font indirilemedi: '+url);
+    return r.arrayBuffer();
+  }).then(arrayBufferToBase64);
+}
+function ensureTRFont(){
+  if(trFontPromise) return trFontPromise;
+  trFontPromise=Promise.all([
+    fetchFontBase64('https://raw.githubusercontent.com/google/fonts/main/apache/roboto/Roboto-Regular.ttf'),
+    fetchFontBase64('https://raw.githubusercontent.com/google/fonts/main/apache/roboto/Roboto-Bold.ttf')
+  ]).then(function(res){
+    return {regular:res[0],bold:res[1]};
+  });
+  return trFontPromise;
+}
+function applyTRFont(doc,fonts){
+  doc.addFileToVFS('RobotoTR-Regular.ttf',fonts.regular);
+  doc.addFont('RobotoTR-Regular.ttf',TR_FONT_NAME,'normal');
+  doc.addFileToVFS('RobotoTR-Bold.ttf',fonts.bold);
+  doc.addFont('RobotoTR-Bold.ttf',TR_FONT_NAME,'bold');
+  doc.setFont(TR_FONT_NAME,'normal');
+}
+
 function snapshotToRows(snapshot){
   var meta=snapshot.meta, branches=snapshot.branches;
   var lyMap = snapshot.lastYear && snapshot.lastYear.map ? snapshot.lastYear.map : null;
@@ -1310,20 +1347,25 @@ function exportPDF(snapshot,filenameBase){
   showToast('PDF hazırlanıyor…');
   Promise.all([
     loadScriptOnce('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'),
-    loadScriptOnce('https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js')
-  ]).then(function(){
+    loadScriptOnce('https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js'),
+    ensureTRFont()
+  ]).then(function(results){
+    var trFonts=results[2];
     var jsPDF=window.jspdf.jsPDF;
     var doc=new jsPDF();
+    applyTRFont(doc,trFonts);
     var rows=snapshotToRows(snapshot);
     var title=rows[0][0];
     var kdvLine=rows[1].join(' ');
     var header=rows[3];
     var body=rows.slice(4);
+    doc.setFont(TR_FONT_NAME,'bold');
     doc.setFontSize(13);
     doc.text(title,14,15);
+    doc.setFont(TR_FONT_NAME,'normal');
     doc.setFontSize(9);
     doc.text(kdvLine,14,21);
-    doc.autoTable({startY:26,head:[header],body:body,styles:{fontSize:8,cellPadding:3},headStyles:{fillColor:[16,24,40]}});
+    doc.autoTable({startY:26,head:[header],body:body,styles:{fontSize:8,cellPadding:3,font:TR_FONT_NAME},headStyles:{fillColor:[16,24,40],font:TR_FONT_NAME,fontStyle:'bold'}});
     doc.save(filenameBase+'.pdf');
     showToast('PDF indirildi.','ok');
   }).catch(function(err){
@@ -1337,50 +1379,59 @@ function hexToRgb(hex){
   return m ? [parseInt(m[1],16),parseInt(m[2],16),parseInt(m[3],16)] : [16,24,40];
 }
 
+/* Bir kategori satırının PDF'te gösterilecek NET (KDV dahil) fiyatını hesaplar.
+   Fiyat girişi zaten KDV dahilse olduğu gibi, KDV hariç girildiyse KDV eklenerek
+   döndürülür — PDF'te her zaman tek ve nihai (KDV dahil) tutar gösterilir. */
+function grossPriceOf(c,meta){
+  if(c.fiyat===null||c.fiyat===undefined||isNaN(c.fiyat)) return null;
+  var gross = meta.kdvDahil ? c.fiyat : computeSecondary(c.fiyat,meta.kdvOrani,meta.kdvDahil);
+  if(gross!=null && meta.yuvarlama) gross=roundVal(gross,meta.yuvarlama);
+  return gross;
+}
+
 function exportBranchPDF(b){
   if(!b) return;
   showToast('PDF hazırlanıyor…');
   Promise.all([
     loadScriptOnce('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'),
-    loadScriptOnce('https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js')
-  ]).then(function(){
+    loadScriptOnce('https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js'),
+    ensureTRFont()
+  ]).then(function(results){
+    var trFonts=results[2];
     var jsPDF=window.jspdf.jsPDF;
     var doc=new jsPDF({unit:'mm',format:'a4'});
+    applyTRFont(doc,trFonts);
     var meta=state.meta;
     var idx=state.branches.findIndex(function(x){return x.id===b.id;});
     var col=branchColor(b,idx);
     var rgb=hexToRgb(col.base);
     var katLabel=(KATEGORILER[b.kategori]||KATEGORILER.diger).label;
     var donem=(meta.donemler||[]).find(function(d){return d.id===meta.aktifDonemId;});
-    var showSec=meta.kdvKarsilikGoster!==false;
     var showLY=meta.gecenYilGoster!==false && state.lastYear && state.lastYear.map;
 
     doc.setFillColor(rgb[0],rgb[1],rgb[2]);
     doc.rect(0,0,210,22,'F');
     doc.setTextColor(255,255,255);
+    doc.setFont(TR_FONT_NAME,'bold');
     doc.setFontSize(18);
     doc.text(b.ad,14,13);
+    doc.setFont(TR_FONT_NAME,'normal');
     doc.setFontSize(10);
     doc.text(katLabel+' · '+meta.yil+' '+(donem?donem.ad:''),14,19);
     doc.setTextColor(30,30,30);
 
     doc.setFontSize(9);
-    doc.text('KDV Oranı: %'+meta.kdvOrani+' ('+(meta.kdvDahil?'fiyatlara dahil':'fiyatlara hariç')+')',14,30);
+    doc.text('KDV Oranı: %'+meta.kdvOrani+' (fiyatlara dahildir)',14,30);
 
-    var header=['Zaman Dilimi / Paket','Fiyat ('+(meta.kdvDahil?'KDV Dahil':'KDV Hariç')+')'];
-    if(showSec) header.push('Karşılık ('+(meta.kdvDahil?'KDV Hariç':'KDV Dahil')+')');
+    var header=['Zaman Dilimi / Paket','Fiyat (KDV Dahil)'];
     if(showLY) header.push('Geçen Yıl');
 
     var body=b.categories.map(function(c){
-      var row=[catDisplayText(c), c.fiyat!=null?Number(c.fiyat).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2})+' ₺':'—'];
-      if(showSec){
-        var sec=computeSecondary(c.fiyat,meta.kdvOrani,meta.kdvDahil);
-        if(sec!=null && meta.yuvarlama) sec=roundVal(sec,meta.yuvarlama);
-        row.push(sec!=null?sec.toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2})+' ₺':'—');
-      }
+      var gross=grossPriceOf(c,meta);
+      var row=[catDisplayText(c), gross!=null?formatTL(gross):'—'];
       if(showLY){
         var ly=state.lastYear.map[b.ad+'||'+catKeyOf(c)];
-        row.push(ly!=null?Number(ly).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2})+' ₺':'—');
+        row.push(ly!=null?formatTL(Number(ly)):'—');
       }
       return row;
     });
@@ -1389,8 +1440,8 @@ function exportBranchPDF(b){
       startY:35,
       head:[header],
       body:body,
-      styles:{fontSize:10,cellPadding:4},
-      headStyles:{fillColor:rgb,textColor:[255,255,255]},
+      styles:{fontSize:10,cellPadding:4,font:TR_FONT_NAME},
+      headStyles:{fillColor:rgb,textColor:[255,255,255],font:TR_FONT_NAME,fontStyle:'bold'},
       alternateRowStyles:{fillColor:[248,249,248]},
       margin:{left:14,right:14}
     });
@@ -1399,7 +1450,9 @@ function exportBranchPDF(b){
     if(b.not && b.not.trim()){
       doc.setFontSize(10);
       doc.setTextColor(rgb[0],rgb[1],rgb[2]);
+      doc.setFont(TR_FONT_NAME,'bold');
       doc.text('Paket Ders (Sözünüz):',14,afterTableY);
+      doc.setFont(TR_FONT_NAME,'normal');
       doc.setTextColor(60,60,60);
       var noteLines=doc.splitTextToSize(b.not,182);
       doc.text(noteLines,14,afterTableY+6);
