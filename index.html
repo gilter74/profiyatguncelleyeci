@@ -1,0 +1,1428 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fiyat Güncelleyici — Aylık Paket Programı</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#101828;
+  --paper:#F3F5F4;
+  --panel:#FFFFFF;
+  --line:#E1E6E4;
+  --line-strong:#C9D1CE;
+  --teal:#0F6E63;
+  --teal-dark:#0A4F47;
+  --teal-bg:#E7F1EF;
+  --vokal:#0E7C86;
+  --vokal-bg:#E5F1F2;
+  --gold:#A9791E;
+  --gold-bg:#F5EEDC;
+  --ai:#5B4B8A;
+  --ai-bg:#ECE8F5;
+  --muted:#667085;
+  --danger:#B3261E;
+  --danger-bg:#FBEAE9;
+  --success:#166534;
+  --success-bg:#E9F5EC;
+  --radius:12px;
+  --radius-sm:8px;
+  --font-display:'Fraunces',serif;
+  --font-body:'Inter',sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+  --shadow:0 1px 2px rgba(16,24,40,.04), 0 2px 8px rgba(16,24,40,.06);
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--font-body);line-height:1.45;padding-bottom:80px;}
+h1,h2,h3{font-family:var(--font-display);font-weight:600;margin:0;}
+button{font-family:var(--font-body);cursor:pointer;}
+input,select,textarea{font-family:var(--font-body);}
+.num{font-family:var(--font-mono);font-variant-numeric:tabular-nums;}
+
+/* ---------- header ---------- */
+header.top{background:var(--ink);color:#F4F1E8;padding:28px 24px 22px;}
+.top-inner{max-width:1180px;margin:0 auto;}
+.top-title{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;}
+.top-title h1{font-size:26px;color:#fff;}
+.top-title .sub{color:#B9C0D4;font-size:13px;letter-spacing:.02em;}
+.staff{width:100%;height:16px;margin-top:14px;opacity:.55;}
+.staff line{stroke:#5C6B8A;stroke-width:1;}
+.donem-bar{margin-top:16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.donem-pill{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:7px 16px;font-size:14px;color:#F4F1E8;display:flex;align-items:center;gap:8px;}
+.donem-pill b{font-weight:600;}
+.btn-ghost-light{background:transparent;border:1px solid rgba(255,255,255,.35);color:#F4F1E8;border-radius:8px;padding:6px 12px;font-size:13px;}
+.btn-ghost-light:hover{background:rgba(255,255,255,.1);}
+
+/* ---------- layout ---------- */
+.wrap{max-width:1180px;margin:0 auto;padding:20px 24px 0;}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);}
+.panel-pad{padding:18px 20px;}
+.section-gap{margin-top:18px;}
+details.panel summary{cursor:pointer;list-style:none;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;font-family:var(--font-display);font-size:16px;font-weight:600;}
+details.panel summary::-webkit-details-marker{display:none;}
+details.panel summary .chev{font-size:13px;color:var(--muted);font-family:var(--font-body);font-weight:500;transition:transform .15s;}
+details[open] summary .chev{transform:rotate(90deg);}
+details.panel .details-body{padding:0 20px 20px;border-top:1px solid var(--line);padding-top:16px;}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+@media (max-width:760px){.grid2,.grid3{grid-template-columns:1fr;}}
+
+label.field-label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:5px;font-weight:600;letter-spacing:.01em;}
+input[type=text],input[type=number],select,textarea{
+  width:100%;border:1px solid var(--line-strong);border-radius:var(--radius-sm);padding:9px 11px;font-size:14px;background:#fff;color:var(--ink);
+}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--teal);outline-offset:1px;border-color:var(--teal);}
+textarea{resize:vertical;font-family:var(--font-body);}
+
+.row-inline{display:flex;align-items:center;gap:8px;}
+.checkbox-row{display:flex;align-items:center;gap:8px;font-size:14px;}
+.checkbox-row input{width:auto;}
+
+button.btn{border:none;border-radius:var(--radius-sm);padding:9px 15px;font-size:13.5px;font-weight:600;display:inline-flex;align-items:center;gap:6px;}
+.btn-primary{background:var(--teal);color:#fff;}
+.btn-primary:hover{background:var(--teal-dark);}
+.btn-outline{background:#fff;border:1px solid var(--line-strong)!important;color:var(--ink);}
+.btn-outline:hover{background:#F7F8F8;}
+.btn-danger{background:var(--danger-bg);color:var(--danger);}
+.btn-danger:hover{background:#F6D8D6;}
+.btn-gold{background:var(--gold-bg);color:var(--gold);}
+.btn-sm{padding:5px 10px;font-size:12.5px;border-radius:7px;}
+.btn-icon{padding:5px 8px;font-size:13px;border-radius:7px;background:#F1F3F2;border:1px solid var(--line);}
+.btn-icon:hover{background:#E6E9E7;}
+.btn:disabled{opacity:.45;cursor:not-allowed;}
+
+.chip{display:inline-flex;align-items:center;padding:4px 11px;border-radius:999px;font-size:12.5px;font-weight:600;}
+.chip-muzik{background:var(--teal-bg);color:var(--teal-dark);}
+.chip-vokal{background:var(--vokal-bg);color:var(--vokal);}
+.chip-satranc{background:var(--gold-bg);color:var(--gold);}
+.chip-ai{background:var(--ai-bg);color:var(--ai);}
+.chip-diger{background:#EEF0F1;color:var(--muted);}
+
+.filters{display:flex;gap:8px;margin:18px 0 4px;flex-wrap:wrap;}
+.filter-btn{border:1px solid var(--line-strong);background:#fff;border-radius:999px;padding:6px 14px;font-size:13px;font-weight:600;color:var(--muted);}
+.filter-btn.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+
+/* ---------- branch cards ---------- */
+#branchesContainer{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px;}
+@media (max-width:900px){#branchesContainer{grid-template-columns:1fr;}}
+.branch-card{background:var(--panel);border:1px solid var(--line);border-left:5px solid var(--bc,var(--teal));border-radius:var(--radius);box-shadow:var(--shadow);display:flex;flex-direction:column;overflow:hidden;}
+.branch-head{padding:14px 16px 10px;background:var(--bc-bg,var(--teal-bg));border-bottom:1px solid var(--bc-soft,var(--line));display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
+.branch-head-left{display:flex;flex-direction:column;gap:8px;flex:1;}
+.branch-name-input{font-family:var(--font-display);font-size:17px;font-weight:700;color:var(--bc,var(--ink));border:1px solid transparent;background:transparent;padding:2px 4px;border-radius:6px;}
+.branch-name-input:hover{border-color:var(--bc-soft,var(--line));}
+.branch-name-input:focus{border-color:var(--bc,var(--teal));background:#fff;}
+.branch-controls{display:flex;gap:5px;align-items:center;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end;}
+.branch-controls .btn-icon:hover{background:var(--bc-soft,#E6E9E7);}
+.branch-body{padding:12px 16px 14px;flex:1;}
+.cat-row{border:1px solid var(--line);border-left:4px solid var(--bc-soft,var(--line));border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:9px;background:#FBFCFB;}
+.branch-card input:focus,.branch-card select:focus,.branch-card textarea:focus{outline-color:var(--bc,var(--teal));border-color:var(--bc,var(--teal));}
+.cat-row-top{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:13px;}
+.cat-row-top .mini-input{width:52px;padding:6px 6px;text-align:center;font-size:13px;}
+.cat-row-top .mini-input.ders{width:56px;}
+.cat-row-top .lbl-txt{color:var(--muted);font-size:12.5px;}
+.cat-row-controls{margin-left:auto;display:flex;gap:4px;}
+.cat-price-row{display:flex;align-items:flex-end;gap:12px;margin-top:9px;flex-wrap:wrap;}
+.price-block{flex:1;min-width:130px;}
+.price-block input{font-family:var(--font-mono);font-size:15px;font-weight:600;}
+.secondary-price{font-size:12px;color:var(--muted);margin-top:4px;font-family:var(--font-mono);}
+.lastyear-price{font-size:11.5px;color:#9AA1AC;margin-top:2px;font-style:italic;}
+body.hide-lastyear .lastyear-price{display:none;}
+body.hide-kdvkarsilik .secondary-price{display:none;}
+.add-cat-btn{width:100%;border:1.5px dashed var(--bc-soft,var(--line-strong));background:transparent;border-radius:var(--radius-sm);padding:8px;font-size:13px;color:var(--bc,var(--muted));font-weight:600;}
+.add-cat-btn:hover{border-color:var(--bc,var(--teal));color:var(--bc,var(--teal));background:var(--bc-bg,transparent);}
+.package-note-wrap{margin-top:12px;border-top:1px dashed var(--bc-soft,var(--line));padding-top:12px;}
+.package-note-wrap label{display:flex;justify-content:space-between;font-size:12px;font-weight:700;color:var(--bc,var(--gold));margin-bottom:5px;text-transform:uppercase;letter-spacing:.03em;}
+.package-note-wrap textarea{min-height:52px;font-size:13px;background:#FFFDFB;border-color:var(--bc-soft,#EAD9A8);}
+.char-count{font-weight:500;color:var(--muted);text-transform:none;font-size:11px;}
+
+.add-branch-wrap{margin-top:16px;display:flex;justify-content:center;}
+.add-branch-btn{border:2px dashed var(--line-strong);background:#fff;border-radius:var(--radius);padding:16px;width:100%;color:var(--muted);font-weight:700;font-size:14px;}
+.add-branch-btn:hover{border-color:var(--teal);color:var(--teal);}
+
+/* ---------- bulk increase table ---------- */
+table.bulk-table{width:100%;border-collapse:collapse;font-size:13.5px;}
+table.bulk-table th{text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);padding:6px 8px;border-bottom:1px solid var(--line-strong);}
+table.bulk-table td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:middle;}
+table.bulk-table input[type=number]{width:80px;padding:6px 8px;}
+.pct-quickbar{display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;background:#F7F8F7;border:1px solid var(--line);border-radius:var(--radius-sm);padding:10px 12px;}
+.pct-quickbar input{width:90px;}
+
+/* ---------- archive ---------- */
+.archive-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 4px;border-bottom:1px solid var(--line);flex-wrap:wrap;}
+.archive-item:last-child{border-bottom:none;}
+.archive-meta{font-size:13px;}
+.archive-meta .t{font-weight:600;}
+.archive-meta .d{color:var(--muted);font-size:12px;}
+.archive-actions{display:flex;gap:6px;flex-wrap:wrap;}
+
+/* ---------- modal ---------- */
+.modal-overlay{position:fixed;inset:0;background:rgba(16,24,40,.55);display:none;align-items:flex-start;justify-content:center;z-index:100;padding:40px 16px;overflow-y:auto;}
+.modal-overlay.show{display:flex;}
+.modal-box{background:#fff;border-radius:var(--radius);max-width:760px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,.25);}
+.modal-head{padding:18px 22px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;}
+.modal-body{padding:18px 22px;max-height:56vh;overflow-y:auto;}
+.modal-foot{padding:16px 22px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;}
+.diff-up{color:var(--success);font-weight:700;}
+.diff-down{color:var(--danger);font-weight:700;}
+.diff-flat{color:var(--muted);}
+
+/* ---------- toast ---------- */
+#toastWrap{position:fixed;bottom:20px;right:20px;display:flex;flex-direction:column;gap:8px;z-index:200;}
+.toast{background:var(--ink);color:#fff;padding:11px 16px;border-radius:8px;font-size:13.5px;box-shadow:0 6px 18px rgba(0,0,0,.25);animation:toastin .15s ease-out;}
+.toast.ok{background:var(--success);}
+.toast.err{background:var(--danger);}
+@keyframes toastin{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+.hint{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.5;}
+.section-title{display:flex;align-items:center;gap:8px;margin:26px 0 4px;}
+.section-title h2{font-size:16px;}
+.section-title .line{flex:1;height:1px;background:var(--line-strong);}
+footer.note{max-width:1180px;margin:30px auto 0;padding:0 24px;color:var(--muted);font-size:12px;text-align:center;}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-inner">
+    <div class="top-title">
+      <h1>Fiyat Güncelleyici</h1>
+      <span class="sub">Aylık paket ders programı · RockJazz Müzik &amp; Silifke Satranç Atölyesi</span>
+    </div>
+    <svg class="staff" viewBox="0 0 1000 16" preserveAspectRatio="none">
+      <line x1="0" y1="2" x2="1000" y2="2"></line>
+      <line x1="0" y1="5.5" x2="1000" y2="5.5"></line>
+      <line x1="0" y1="9" x2="1000" y2="9"></line>
+      <line x1="0" y1="12.5" x2="1000" y2="12.5"></line>
+      <line x1="0" y1="16" x2="1000" y2="16"></line>
+    </svg>
+    <div class="donem-bar">
+      <div class="donem-pill">📅 <b id="donemBarText">—</b></div>
+      <div class="donem-pill">KDV <b id="kdvBarText">%20</b></div>
+      <button class="btn-ghost-light" id="scrollToDonem">Dönem / KDV Ayarları</button>
+      <button class="btn-ghost-light" id="scrollToArchive">Arşiv</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- DÖNEM & KDV & YUVARLAMA -->
+  <details class="panel section-gap" id="donemPanel" open>
+    <summary>Dönem, KDV ve Yuvarlama Ayarları <span class="chev">▸</span></summary>
+    <div class="details-body">
+      <div class="grid3">
+        <div>
+          <label class="field-label">Yıl</label>
+          <input type="number" id="yilInput" class="num">
+          <div class="hint">Sistem tarihine göre otomatik önerilir, dilediğiniz gibi değiştirebilirsiniz.</div>
+        </div>
+        <div>
+          <label class="field-label">Aktif Dönem</label>
+          <select id="aktifDonemSelect"></select>
+        </div>
+        <div>
+          <label class="field-label">Yeni Dönem Ekle</label>
+          <div class="row-inline">
+            <input type="text" id="yeniDonemInput" placeholder="örn. Şubat–Eylül Dönemi">
+            <button class="btn btn-outline btn-sm" id="yeniDonemEkleBtn">Ekle</button>
+          </div>
+        </div>
+      </div>
+      <div id="donemListWrap" class="hint" style="margin-top:10px;"></div>
+
+      <div class="grid3" style="margin-top:18px;">
+        <div>
+          <label class="field-label">KDV Oranı (%)</label>
+          <input type="number" id="kdvOraniInput" class="num" min="0" max="100" step="0.5">
+        </div>
+        <div>
+          <label class="field-label">Fiyat Girişi</label>
+          <div class="checkbox-row" style="margin-top:8px;">
+            <input type="checkbox" id="kdvDahilCheck">
+            <label for="kdvDahilCheck" style="margin:0;">Girdiğim fiyatlar KDV dahildir</label>
+          </div>
+          <div class="hint">İşaretli değilse girilen fiyatlar KDV hariç kabul edilir; her iki durumda da karşılık gelen tutar altta gösterilir.</div>
+        </div>
+        <div>
+          <label class="field-label">Yuvarlama</label>
+          <select id="yuvarlamaSelect">
+            <option value="0">Kapalı</option>
+            <option value="1">1 ₺'ye</option>
+            <option value="10">10 ₺'ye</option>
+            <option value="50">50 ₺'ye</option>
+            <option value="100">100 ₺'ye</option>
+          </select>
+        </div>
+      </div>
+      <div class="row-inline" style="margin-top:16px;">
+        <button class="btn btn-outline" id="yuvarlaTumunuBtn">Tüm Fiyatları Şimdi Yuvarla…</button>
+        <span class="hint" style="margin:0;">Seçtiğiniz yuvarlama adımına göre tüm aktif fiyatları önizleyip onaylayabilirsiniz.</span>
+      </div>
+
+      <div class="grid2" style="margin-top:18px;">
+        <div class="checkbox-row">
+          <input type="checkbox" id="gecenYilGosterCheck">
+          <label for="gecenYilGosterCheck" style="margin:0;">Geçen yıl fiyatını fiyat kutusunun altında göster</label>
+        </div>
+        <div class="checkbox-row">
+          <input type="checkbox" id="kdvKarsilikGosterCheck">
+          <label for="kdvKarsilikGosterCheck" style="margin:0;">KDV karşılık (hariç/dahil) fiyatını göster</label>
+        </div>
+      </div>
+      <div class="hint">Bu iki görünüm ayarı tüm branşlarda birlikte uygulanır; kapattığınızda ilgili satırlar hem ekrandan hem PDF/Excel çıktılarından gizlenir.</div>
+    </div>
+  </details>
+
+  <!-- TOPLU % ARTIŞ -->
+  <div class="section-title"><h2>Toplu % Artış Oranı</h2><div class="line"></div></div>
+  <div class="panel panel-pad">
+    <div class="hint" style="margin-top:0;">Artış uygulanacak branşları işaretleyin ve her biri için ayrı ayrı yüzde belirleyin — hepsine aynı oranı uygulamak zorunda değilsiniz. Uygulamadan önce önizleme gösterilir.</div>
+    <div class="pct-quickbar">
+      <span style="font-size:13px;font-weight:600;">Hızlı seçim:</span>
+      <button class="btn btn-sm btn-outline" data-quick-select="all">Tümünü Seç</button>
+      <button class="btn btn-sm btn-outline" data-quick-select="none">Seçimi Temizle</button>
+      <button class="btn btn-sm btn-outline" data-quick-select="muzik">Sadece Müzik</button>
+      <button class="btn btn-sm btn-outline" data-quick-select="satranc">Sadece Satranç</button>
+      <button class="btn btn-sm btn-outline" data-quick-select="ai">Sadece Yapay Zeka</button>
+      <span style="flex:1"></span>
+      <label style="font-size:13px;font-weight:600;">Hepsine uygula:</label>
+      <input type="number" id="quickPctInput" class="num" placeholder="%" step="0.5">
+      <button class="btn btn-sm btn-gold" id="quickPctApplyBtn">Seçililere Yaz</button>
+    </div>
+    <div style="overflow-x:auto;">
+      <table class="bulk-table">
+        <thead><tr><th style="width:30px;"></th><th>Branş</th><th>Kategori</th><th>Artış %</th></tr></thead>
+        <tbody id="bulkTableBody"></tbody>
+      </table>
+    </div>
+    <div class="row-inline" style="margin-top:16px;">
+      <button class="btn btn-primary" id="bulkPreviewBtn">Önizleme</button>
+      <span class="hint" style="margin:0;">Önizlemede satır satır onaylayıp uygulayabilirsiniz.</span>
+    </div>
+  </div>
+
+  <!-- GEÇEN YIL -->
+  <div class="section-title"><h2>Geçen Yıl Kaydı</h2><div class="line"></div></div>
+  <div class="panel panel-pad">
+    <div class="row-inline" style="flex-wrap:wrap;">
+      <button class="btn btn-outline" id="saveLastYearBtn">Mevcut Fiyatları "Geçen Yıl" Olarak Kaydet</button>
+      <button class="btn btn-danger" id="clearLastYearBtn">Geçen Yıl Bilgisini Temizle</button>
+      <span class="hint" id="lastYearStatus" style="margin:0;"></span>
+    </div>
+    <div class="hint">Kaydedilen geçen yıl fiyatları, her branş kartında ilgili zaman diliminin altında referans olarak gösterilir.</div>
+  </div>
+
+  <!-- ARŞİV -->
+  <div class="section-title" id="archiveSection"><h2>Arşiv (Excel / PDF / JSON)</h2><div class="line"></div></div>
+  <div class="panel panel-pad">
+    <div class="row-inline" style="flex-wrap:wrap;">
+      <button class="btn btn-primary" id="archiveNowBtn">Şimdiki Durumu Arşivle</button>
+      <button class="btn btn-gold" id="exportAllExcelBtn">Tüm Programı Excel Olarak İndir</button>
+      <button class="btn btn-outline" id="exportFullJsonBtn">Tüm Programı JSON Olarak İndir</button>
+      <label class="btn btn-outline" style="margin:0;">Dosyadan Yükle (JSON)
+        <input type="file" id="importJsonInput" accept="application/json" style="display:none;">
+      </label>
+    </div>
+    <div class="hint">"Tüm Programı Excel Olarak İndir" güncel/canlı tüm branş ve fiyatları tek Excel dosyası olarak indirir. Excel ve PDF indirmeleri için internet bağlantısı gerekir (gerekli kütüphaneler ilk kullanımda yüklenir). JSON yedekleme ve geri yükleme tamamen çevrimdışı çalışır.</div>
+    <div id="archiveList" style="margin-top:10px;"></div>
+  </div>
+
+  <!-- FİLTRELER -->
+  <div class="filters" id="filterBar"></div>
+
+  <!-- BRANŞ KARTLARI -->
+  <div id="branchesContainer"></div>
+  <div class="add-branch-wrap">
+    <button class="add-branch-btn" id="addBranchBtn">+ Yeni Branş / Eğitim Ekle</button>
+  </div>
+
+  <!-- VARSAYILAN & KAYDET -->
+  <div class="section-title"><h2>Program Ayarları</h2><div class="line"></div></div>
+  <div class="panel panel-pad">
+    <div class="row-inline" style="flex-wrap:wrap;">
+      <button class="btn btn-primary" id="manualSaveBtn">Kaydet</button>
+      <button class="btn btn-danger" id="resetDefaultsBtn">Varsayılana Sıfırla</button>
+      <span class="hint" style="margin:0;">Varsayılana sıfırlama yalnızca branş/fiyat yapısını sıfırlar; arşivleriniz ve geçen yıl kaydınız korunur.</span>
+    </div>
+  </div>
+
+</div>
+
+<footer class="note">Tüm veriler bu tarayıcıda (localStorage) saklanır. Düzenli olarak JSON yedeği indirmeniz önerilir.</footer>
+
+<!-- PREVIEW MODAL -->
+<div class="modal-overlay" id="previewModal">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h3 id="previewTitle">Önizleme</h3>
+      <button class="btn-icon" id="previewCloseBtn">✕</button>
+    </div>
+    <div class="modal-body" id="previewBody"></div>
+    <div class="modal-foot">
+      <span class="hint" style="margin:0;" id="previewSummary"></span>
+      <div class="row-inline">
+        <button class="btn btn-outline" id="previewCancelBtn">Vazgeç</button>
+        <button class="btn btn-primary" id="previewConfirmBtn">Onayla ve Uygula</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toastWrap"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ============================================================
+   YARDIMCI FONKSİYONLAR
+============================================================ */
+function uid(p){ return p+'_'+Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4); }
+function clamp(n,min,max){ return Math.max(min,Math.min(max,n)); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];}); }
+function toNum(v){ if(v===''||v===null||v===undefined) return null; var n=parseFloat(v); return isNaN(n)?null:n; }
+function formatTL(v){ if(v===null||v===undefined||isNaN(v)) return '—'; return v.toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2})+' ₺'; }
+function roundVal(v,step){ if(!step||step<=0) return v; return Math.round(v/step)*step; }
+function computeSecondary(fiyat,kdvOrani,dahil){
+  if(fiyat===null||fiyat===undefined||isNaN(fiyat)) return null;
+  var oran=(kdvOrani||0)/100;
+  return dahil ? fiyat/(1+oran) : fiyat*(1+oran);
+}
+function todayStr(){
+  var d=new Date();
+  return d.toLocaleDateString('tr-TR')+' '+d.toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'});
+}
+function deepClone(o){ return JSON.parse(JSON.stringify(o)); }
+
+var KATEGORILER={
+  muzik:{label:'Müzik',cls:'chip-muzik'},
+  vokal:{label:'Vokal',cls:'chip-vokal'},
+  satranc:{label:'Satranç',cls:'chip-satranc'},
+  ai:{label:'Yapay Zeka',cls:'chip-ai'},
+  diger:{label:'Diğer',cls:'chip-diger'}
+};
+
+/* Her branşa kendine özgü, birbirinden ayırt edilebilir bir renk atanır. */
+var BRANCH_PALETTE=[
+  {base:'#BE123C',bg:'#FDECEF',soft:'#F6C2CC'}, /* Gül kurusu */
+  {base:'#B45309',bg:'#FEF3E0',soft:'#F3D293'}, /* Amber */
+  {base:'#4D7C0F',bg:'#EEF6DE',soft:'#C9E29A'}, /* Zeytin yeşili */
+  {base:'#047857',bg:'#E1F5EE',soft:'#9FDDC4'}, /* Zümrüt */
+  {base:'#0F766E',bg:'#E1F3F1',soft:'#9AD6CE'}, /* Teal */
+  {base:'#0E7490',bg:'#E1F3F7',soft:'#9BD6E6'}, /* Camgöbeği */
+  {base:'#1D4ED8',bg:'#E7EEFD',soft:'#A9C0F7'}, /* Mavi */
+  {base:'#4338CA',bg:'#EBEAFB',soft:'#B7B1F0'}, /* İndigo */
+  {base:'#6D28D9',bg:'#F1EAFB',soft:'#CDB2F0'}, /* Mor */
+  {base:'#A21CAF',bg:'#FBE7F8',soft:'#EDA6E4'}, /* Fuşya */
+  {base:'#BE185D',bg:'#FCE7EF',soft:'#F0A3C0'}, /* Pembe */
+  {base:'#334155',bg:'#EEF1F4',soft:'#B7C1CB'}  /* Arduvaz (yedek) */
+];
+function branchColor(b,idx){
+  var key=(b && typeof b.renk==='number')?b.renk:idx;
+  var n=BRANCH_PALETTE.length;
+  return BRANCH_PALETTE[((key%n)+n)%n];
+}
+
+/* ============================================================
+   VARSAYILAN VERİ YAPISI
+============================================================ */
+function catRow(sure,tekrar,ders){ return {id:uid('c'),sure:sure,tekrar:tekrar,ders:ders,fiyat:null}; }
+
+function defMuzikAleti(){
+  return [
+    catRow(10,3,12),
+    catRow(20,2,8),
+    catRow(30,2,8),
+    catRow(40,2,8),
+    catRow(40,1,4)
+  ];
+}
+function defSan(){ return [ catRow(20,3,12), catRow(30,2,8) ]; }
+function defMOH(){ return [ catRow(30,3,12) ]; }
+function defSatranc(){ return [ catRow(20,3,12), catRow(30,2,8), catRow(40,2,8) ]; }
+function defAI(){ return [ catRow(null,null,24) ]; }
+
+function branchRow(ad,kategori,cats,renk){
+  return {id:uid('b'),ad:ad,kategori:kategori,categories:cats,not:'',renk:renk};
+}
+
+function defaultBranches(){
+  return [
+    branchRow('Piyano','muzik',defMuzikAleti(),0),
+    branchRow('Gitar','muzik',defMuzikAleti(),1),
+    branchRow('Bağlama','muzik',defMuzikAleti(),2),
+    branchRow('Ukulele','muzik',defMuzikAleti(),3),
+    branchRow('Org','muzik',defMuzikAleti(),4),
+    branchRow('Şan Eğitimi','vokal',defSan(),5),
+    branchRow('MOH','muzik',defMOH(),6),
+    branchRow('Satranç','satranc',defSatranc(),7),
+    branchRow('AI 1. Seviye','ai',defAI(),8),
+    branchRow('AI 2. Seviye','ai',defAI(),9)
+  ];
+}
+
+function defaultState(){
+  var d0={id:uid('d'),ad:'Yeni Dönem'};
+  return {
+    version:1,
+    meta:{
+      yil:new Date().getFullYear(),
+      donemler:[d0],
+      aktifDonemId:d0.id,
+      kdvOrani:20,
+      kdvDahil:true,
+      yuvarlama:0,
+      gecenYilGoster:true,
+      kdvKarsilikGoster:true
+    },
+    branches:defaultBranches(),
+    lastYear:null,
+    archives:[]
+  };
+}
+
+/* ============================================================
+   STATE YÜKLEME / KAYDETME
+============================================================ */
+var STORAGE_KEY='fiyatGuncelleyici_v1';
+var state=loadState();
+var activeFilter='tumu';
+var saveTimer=null;
+
+function loadState(){
+  try{
+    var raw=localStorage.getItem(STORAGE_KEY);
+    if(!raw) return defaultState();
+    var parsed=JSON.parse(raw);
+    if(!parsed || !parsed.branches || !parsed.meta) return defaultState();
+    migrateOrgToMuzik(parsed);
+    return parsed;
+  }catch(e){
+    console.error('State yüklenemedi, varsayılana dönülüyor.',e);
+    return defaultState();
+  }
+}
+function migrateOrgToMuzik(st){
+  (st.branches||[]).forEach(function(b){
+    if(b.ad && b.ad.trim().toLowerCase().indexOf('org')===0 && b.kategori!=='muzik'){
+      b.kategori='muzik';
+    }
+  });
+}
+function saveStateNow(){
+  try{
+    localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
+  }catch(e){
+    showToast('Kaydetme başarısız: tarayıcı depolama alanı dolu olabilir.','err');
+  }
+}
+function saveStateDebounced(){
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(saveStateNow,450);
+}
+
+/* ============================================================
+   TOAST
+============================================================ */
+function showToast(msg,type){
+  var wrap=document.getElementById('toastWrap');
+  var el=document.createElement('div');
+  el.className='toast'+(type?' '+type:'');
+  el.textContent=msg;
+  wrap.appendChild(el);
+  setTimeout(function(){ el.remove(); },2600);
+}
+
+/* ============================================================
+   RENDER: ÜST BAR / DÖNEM
+============================================================ */
+function activeDonemAd(){
+  var d=state.meta.donemler.find(function(x){return x.id===state.meta.aktifDonemId;});
+  return d?d.ad:'—';
+}
+function renderTopBar(){
+  document.getElementById('donemBarText').textContent=state.meta.yil+' · '+activeDonemAd();
+  document.getElementById('kdvBarText').textContent='%'+state.meta.kdvOrani+' ('+(state.meta.kdvDahil?'Dahil':'Hariç')+')';
+}
+
+function renderDonemPanel(){
+  document.getElementById('yilInput').value=state.meta.yil;
+  document.getElementById('kdvOraniInput').value=state.meta.kdvOrani;
+  document.getElementById('kdvDahilCheck').checked=!!state.meta.kdvDahil;
+  document.getElementById('yuvarlamaSelect').value=String(state.meta.yuvarlama||0);
+  document.getElementById('gecenYilGosterCheck').checked = state.meta.gecenYilGoster!==false;
+  document.getElementById('kdvKarsilikGosterCheck').checked = state.meta.kdvKarsilikGoster!==false;
+
+  var sel=document.getElementById('aktifDonemSelect');
+  sel.innerHTML=state.meta.donemler.map(function(d){
+    return '<option value="'+d.id+'"'+(d.id===state.meta.aktifDonemId?' selected':'')+'>'+esc(d.ad)+'</option>';
+  }).join('');
+
+  var listWrap=document.getElementById('donemListWrap');
+  if(state.meta.donemler.length>1){
+    listWrap.innerHTML='Kayıtlı dönemler: '+state.meta.donemler.map(function(d){
+      return esc(d.ad)+' <button class="btn-icon" style="padding:2px 6px;" data-action="delete-donem" data-donem="'+d.id+'" title="Sil">✕</button>';
+    }).join(' &nbsp;·&nbsp; ');
+  } else {
+    listWrap.innerHTML='';
+  }
+}
+
+/* ============================================================
+   BRANŞ KARTLARI
+============================================================ */
+function catLabelParts(c){
+  if(c.sure!==null && c.sure!==undefined && c.tekrar!==null && c.tekrar!==undefined){
+    return {hasTime:true};
+  }
+  return {hasTime:false};
+}
+
+function renderCatRow(b,c){
+  var hasTime = c.sure!==null && c.sure!==undefined && c.sure!=='';
+  var hasTekrar = c.tekrar!==null && c.tekrar!==undefined && c.tekrar!=='';
+  var secondary=computeSecondary(c.fiyat,state.meta.kdvOrani,state.meta.kdvDahil);
+  if(secondary!==null && state.meta.yuvarlama) secondary=roundVal(secondary,state.meta.yuvarlama);
+  var secLabel = state.meta.kdvDahil ? 'KDV Hariç' : 'KDV Dahil';
+
+  var lyKey=b.ad+'||'+catKeyOf(c);
+  var lyVal = state.lastYear && state.lastYear.map ? state.lastYear.map[lyKey] : null;
+
+  return ''+
+  '<div class="cat-row" data-cat="'+c.id+'" data-branch="'+b.id+'">'+
+    '<div class="cat-row-top">'+
+      '<input type="number" class="mini-input" data-field="sure" placeholder="dk" value="'+(hasTime?c.sure:'')+'" title="Süre (dakika)">'+
+      '<span class="lbl-txt">dk ×</span>'+
+      '<input type="number" class="mini-input" data-field="tekrar" placeholder="—" value="'+(hasTekrar?c.tekrar:'')+'" title="Haftalık tekrar">'+
+      '<span class="lbl-txt">=</span>'+
+      '<input type="number" class="mini-input ders" data-field="ders" placeholder="ders" value="'+(c.ders===null||c.ders===undefined?'':c.ders)+'" title="Aylık ders sayısı">'+
+      '<span class="lbl-txt">ders</span>'+
+      '<div class="cat-row-controls">'+
+        '<button class="btn-icon" data-action="move-cat-up" title="Yukarı taşı">↑</button>'+
+        '<button class="btn-icon" data-action="move-cat-down" title="Aşağı taşı">↓</button>'+
+        '<button class="btn-icon" data-action="delete-cat" title="Bu satırı sil">✕</button>'+
+      '</div>'+
+    '</div>'+
+    '<div class="cat-price-row">'+
+      '<div class="price-block">'+
+        '<label class="field-label" style="margin-bottom:3px;">Fiyat ('+(state.meta.kdvDahil?'KDV Dahil':'KDV Hariç')+')</label>'+
+        '<input type="number" class="num" data-field="fiyat" placeholder="0.00" value="'+(c.fiyat===null||c.fiyat===undefined?'':c.fiyat)+'" step="0.01">'+
+        '<div class="secondary-price">'+secLabel+': '+(secondary!==null?formatTL(secondary):'—')+'</div>'+
+        (lyVal!=null?'<div class="lastyear-price">Geçen yıl: '+formatTL(lyVal)+'</div>':'')+
+      '</div>'+
+    '</div>'+
+  '</div>';
+}
+
+function catKeyOf(c){
+  var hasTime = c.sure!==null && c.sure!==undefined && c.sure!=='';
+  var hasTekrar = c.tekrar!==null && c.tekrar!==undefined && c.tekrar!=='';
+  if(hasTime && hasTekrar) return c.sure+'dkx'+c.tekrar;
+  return 'ders'+c.ders;
+}
+
+function renderBranchCard(b,idx){
+  var kat=KATEGORILER[b.kategori]||KATEGORILER.diger;
+  var col=branchColor(b,idx);
+  var styleAttr='--bc:'+col.base+';--bc-bg:'+col.bg+';--bc-soft:'+col.soft+';';
+  var catsHtml=b.categories.map(function(c){ return renderCatRow(b,c); }).join('');
+  return ''+
+  '<div class="branch-card" data-branch="'+b.id+'" style="'+styleAttr+'">'+
+    '<div class="branch-head">'+
+      '<div class="branch-head-left">'+
+        '<input type="text" class="branch-name-input" data-field="ad" value="'+esc(b.ad)+'">'+
+        '<select data-field="kategori" style="width:auto;padding:4px 8px;font-size:12px;border-radius:999px;">'+
+          Object.keys(KATEGORILER).map(function(k){
+            return '<option value="'+k+'"'+(k===b.kategori?' selected':'')+'>'+KATEGORILER[k].label+'</option>';
+          }).join('')+
+        '</select>'+
+      '</div>'+
+      '<div class="branch-controls">'+
+        '<button class="btn-icon" data-action="branch-pdf" title="Bu branşı tek sayfa PDF olarak indir">📄 PDF</button>'+
+        '<button class="btn-icon" data-action="move-branch-up" title="Yukarı taşı">↑</button>'+
+        '<button class="btn-icon" data-action="move-branch-down" title="Aşağı taşı">↓</button>'+
+        '<button class="btn-icon" data-action="delete-branch" title="Branşı sil">🗑</button>'+
+      '</div>'+
+    '</div>'+
+    '<div class="branch-body">'+
+      catsHtml+
+      '<button class="add-cat-btn" data-action="add-cat">+ Zaman Dilimi / Paket Ekle</button>'+
+      '<div class="package-note-wrap">'+
+        '<label>Paket Ders (SÖZÜNÜZE) <span class="char-count" data-charcount>'+(b.not||'').length+'/200</span></label>'+
+        '<textarea data-field="not" maxlength="200" placeholder="Manuel olarak yazacağınız özel paket/söz notu…">'+esc(b.not||'')+'</textarea>'+
+      '</div>'+
+    '</div>'+
+  '</div>';
+}
+
+function renderFilterBar(){
+  var counts={tumu:state.branches.length};
+  Object.keys(KATEGORILER).forEach(function(k){ counts[k]=state.branches.filter(function(b){return b.kategori===k;}).length; });
+  var items=[{k:'tumu',label:'Tümü'}].concat(Object.keys(KATEGORILER).map(function(k){return {k:k,label:KATEGORILER[k].label};}));
+  document.getElementById('filterBar').innerHTML=items.map(function(it){
+    return '<button class="filter-btn'+(activeFilter===it.k?' active':'')+'" data-filter="'+it.k+'">'+it.label+' ('+(counts[it.k]||0)+')</button>';
+  }).join('');
+}
+
+function renderBranches(){
+  var list = activeFilter==='tumu' ? state.branches : state.branches.filter(function(b){return b.kategori===activeFilter;});
+  document.getElementById('branchesContainer').innerHTML = list.map(function(b){
+    var idx=state.branches.findIndex(function(x){return x.id===b.id;});
+    return renderBranchCard(b,idx);
+  }).join('') || '<div class="hint">Bu kategoride branş yok.</div>';
+}
+
+/* ============================================================
+   TOPLU % ARTIŞ TABLOSU
+============================================================ */
+function renderBulkTable(){
+  var tbody=document.getElementById('bulkTableBody');
+  tbody.innerHTML=state.branches.map(function(b){
+    var kat=KATEGORILER[b.kategori]||KATEGORILER.diger;
+    return '<tr data-branch="'+b.id+'">'+
+      '<td><input type="checkbox" class="bulk-check"></td>'+
+      '<td>'+esc(b.ad)+'</td>'+
+      '<td><span class="chip '+kat.cls+'">'+kat.label+'</span></td>'+
+      '<td><input type="number" class="num bulk-pct" step="0.5" placeholder="0"></td>'+
+    '</tr>';
+  }).join('');
+}
+
+/* ============================================================
+   ARŞİV LİSTESİ
+============================================================ */
+function renderArchiveList(){
+  var wrap=document.getElementById('archiveList');
+  if(!state.archives.length){ wrap.innerHTML='<div class="hint">Henüz arşivlenmiş bir kayıt yok.</div>'; return; }
+  wrap.innerHTML=state.archives.slice().reverse().map(function(a){
+    return '<div class="archive-item" data-archive="'+a.id+'">'+
+      '<div class="archive-meta"><div class="t">'+esc(a.title)+'</div><div class="d">'+esc(a.date)+'</div></div>'+
+      '<div class="archive-actions">'+
+        '<button class="btn btn-sm btn-outline" data-action="archive-json">JSON</button>'+
+        '<button class="btn btn-sm btn-outline" data-action="archive-excel">Excel</button>'+
+        '<button class="btn btn-sm btn-outline" data-action="archive-pdf">PDF</button>'+
+        '<button class="btn btn-sm btn-gold" data-action="archive-restore">Geri Yükle</button>'+
+        '<button class="btn btn-sm btn-danger" data-action="archive-delete">Sil</button>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
+
+/* ============================================================
+   TAM RENDER
+============================================================ */
+function renderAll(){
+  renderTopBar();
+  renderDonemPanel();
+  applyVisibilityToggles();
+  renderFilterBar();
+  renderBranches();
+  renderBulkTable();
+  renderArchiveList();
+  renderLastYearStatus();
+}
+function applyVisibilityToggles(){
+  document.body.classList.toggle('hide-lastyear', state.meta.gecenYilGoster===false);
+  document.body.classList.toggle('hide-kdvkarsilik', state.meta.kdvKarsilikGoster===false);
+}
+
+function renderLastYearStatus(){
+  var el=document.getElementById('lastYearStatus');
+  if(state.lastYear){
+    el.textContent='Kayıtlı: '+state.lastYear.yil+' · '+state.lastYear.donem+' ('+state.lastYear.savedAt+')';
+  } else {
+    el.textContent='Kayıtlı geçen yıl bilgisi yok.';
+  }
+}
+
+/* ============================================================
+   BRANŞ / KATEGORİ MUTASYONLARI
+============================================================ */
+function findBranch(id){ return state.branches.find(function(b){return b.id===id;}); }
+function findCat(b,id){ return b.categories.find(function(c){return c.id===id;}); }
+
+function addBranch(){
+  var ad=prompt('Yeni branş / eğitim adı:');
+  if(!ad) return;
+  var trimmed=ad.trim();
+  var kategori = trimmed.toLowerCase().indexOf('org')===0 ? 'muzik' : 'diger';
+  var nb=branchRow(trimmed,kategori,[catRow(null,null,1)],state.branches.length);
+  state.branches.push(nb);
+  saveStateNow();
+  renderAll();
+  showToast('"'+ad+'" eklendi.','ok');
+}
+function deleteBranch(id){
+  var b=findBranch(id);
+  if(!b) return;
+  if(!confirm('"'+b.ad+'" branşını ve tüm fiyat bilgilerini silmek istediğinize emin misiniz?')) return;
+  state.branches=state.branches.filter(function(x){return x.id!==id;});
+  saveStateNow();
+  renderAll();
+  showToast('Branş silindi.','ok');
+}
+function moveBranch(id,dir){
+  var idx=state.branches.findIndex(function(b){return b.id===id;});
+  var newIdx=idx+dir;
+  if(newIdx<0||newIdx>=state.branches.length) return;
+  var tmp=state.branches[idx];
+  state.branches[idx]=state.branches[newIdx];
+  state.branches[newIdx]=tmp;
+  saveStateNow();
+  renderAll();
+}
+function addCat(branchId){
+  var b=findBranch(branchId);
+  if(!b) return;
+  b.categories.push(catRow(null,null,1));
+  saveStateNow();
+  renderAll();
+}
+function deleteCat(branchId,catId){
+  var b=findBranch(branchId);
+  if(!b) return;
+  if(b.categories.length<=1){ showToast('Bir branşta en az bir zaman dilimi kalmalı.','err'); return; }
+  if(!confirm('Bu zaman dilimini/paketi silmek istediğinize emin misiniz?')) return;
+  b.categories=b.categories.filter(function(c){return c.id!==catId;});
+  saveStateNow();
+  renderAll();
+}
+function moveCat(branchId,catId,dir){
+  var b=findBranch(branchId);
+  if(!b) return;
+  var idx=b.categories.findIndex(function(c){return c.id===catId;});
+  var newIdx=idx+dir;
+  if(newIdx<0||newIdx>=b.categories.length) return;
+  var tmp=b.categories[idx];
+  b.categories[idx]=b.categories[newIdx];
+  b.categories[newIdx]=tmp;
+  saveStateNow();
+  renderAll();
+}
+
+/* ============================================================
+   DELEGE EDİLMİŞ OLAY DİNLEYİCİLERİ — BRANŞ KARTLARI
+============================================================ */
+document.getElementById('branchesContainer').addEventListener('input',function(e){
+  var t=e.target;
+  var rowEl=t.closest('.cat-row');
+  var cardEl=t.closest('.branch-card');
+  if(!cardEl) return;
+  var branchId=cardEl.getAttribute('data-branch');
+  var b=findBranch(branchId);
+  if(!b) return;
+
+  if(rowEl){
+    var catId=rowEl.getAttribute('data-cat');
+    var c=findCat(b,catId);
+    if(!c) return;
+    var field=t.getAttribute('data-field');
+    if(field==='sure'||field==='tekrar'||field==='ders'){
+      c[field]=toNum(t.value);
+    } else if(field==='fiyat'){
+      c.fiyat=toNum(t.value);
+      var secEl=rowEl.querySelector('.secondary-price');
+      if(secEl){
+        var secondary=computeSecondary(c.fiyat,state.meta.kdvOrani,state.meta.kdvDahil);
+        if(secondary!==null && state.meta.yuvarlama) secondary=roundVal(secondary,state.meta.yuvarlama);
+        var secLabel = state.meta.kdvDahil ? 'KDV Hariç' : 'KDV Dahil';
+        secEl.textContent=secLabel+': '+(secondary!==null?formatTL(secondary):'—');
+      }
+    }
+    saveStateDebounced();
+    return;
+  }
+
+  var field2=t.getAttribute('data-field');
+  if(field2==='ad'){
+    b.ad=t.value;
+    saveStateDebounced();
+  } else if(field2==='not'){
+    b.not=t.value.slice(0,200);
+    var cc=cardEl.querySelector('[data-charcount]');
+    if(cc) cc.textContent=b.not.length+'/200';
+    saveStateDebounced();
+  }
+});
+
+document.getElementById('branchesContainer').addEventListener('change',function(e){
+  var t=e.target;
+  if(t.getAttribute('data-field')==='kategori'){
+    var cardEl=t.closest('.branch-card');
+    var b=findBranch(cardEl.getAttribute('data-branch'));
+    if(b){ b.kategori=t.value; saveStateNow(); renderAll(); }
+  }
+});
+
+document.getElementById('branchesContainer').addEventListener('click',function(e){
+  var actionBtn=e.target.closest('[data-action]');
+  if(!actionBtn) return;
+  var action=actionBtn.getAttribute('data-action');
+  var cardEl=e.target.closest('.branch-card');
+  var branchId=cardEl?cardEl.getAttribute('data-branch'):null;
+  var rowEl=e.target.closest('.cat-row');
+  var catId=rowEl?rowEl.getAttribute('data-cat'):null;
+
+  if(action==='add-cat') addCat(branchId);
+  else if(action==='delete-cat') deleteCat(branchId,catId);
+  else if(action==='move-cat-up') moveCat(branchId,catId,-1);
+  else if(action==='move-cat-down') moveCat(branchId,catId,1);
+  else if(action==='delete-branch') deleteBranch(branchId);
+  else if(action==='move-branch-up') moveBranch(branchId,-1);
+  else if(action==='move-branch-down') moveBranch(branchId,1);
+  else if(action==='branch-pdf') exportBranchPDF(findBranch(branchId));
+});
+
+document.getElementById('addBranchBtn').addEventListener('click',addBranch);
+
+/* ============================================================
+   FİLTRE
+============================================================ */
+document.getElementById('filterBar').addEventListener('click',function(e){
+  var btn=e.target.closest('[data-filter]');
+  if(!btn) return;
+  activeFilter=btn.getAttribute('data-filter');
+  renderFilterBar();
+  renderBranches();
+});
+
+/* ============================================================
+   DÖNEM / KDV / YUVARLAMA OLAYLARI
+============================================================ */
+document.getElementById('yilInput').addEventListener('input',function(){
+  state.meta.yil=toNum(this.value)||state.meta.yil;
+  renderTopBar();
+  saveStateDebounced();
+});
+document.getElementById('aktifDonemSelect').addEventListener('change',function(){
+  state.meta.aktifDonemId=this.value;
+  renderTopBar();
+  saveStateNow();
+});
+document.getElementById('yeniDonemEkleBtn').addEventListener('click',function(){
+  var inp=document.getElementById('yeniDonemInput');
+  var ad=inp.value.trim();
+  if(!ad) return;
+  var nd={id:uid('d'),ad:ad};
+  state.meta.donemler.push(nd);
+  state.meta.aktifDonemId=nd.id;
+  inp.value='';
+  saveStateNow();
+  renderAll();
+  showToast('Dönem eklendi ve aktif yapıldı.','ok');
+});
+document.getElementById('donemListWrap').addEventListener('click',function(e){
+  var btn=e.target.closest('[data-action="delete-donem"]');
+  if(!btn) return;
+  var id=btn.getAttribute('data-donem');
+  if(state.meta.donemler.length<=1){ showToast('En az bir dönem kalmalı.','err'); return; }
+  if(!confirm('Bu dönemi silmek istediğinize emin misiniz?')) return;
+  state.meta.donemler=state.meta.donemler.filter(function(d){return d.id!==id;});
+  if(state.meta.aktifDonemId===id) state.meta.aktifDonemId=state.meta.donemler[0].id;
+  saveStateNow();
+  renderAll();
+});
+document.getElementById('kdvOraniInput').addEventListener('input',function(){
+  state.meta.kdvOrani=clamp(toNum(this.value)||0,0,100);
+  saveStateDebounced();
+  renderAll();
+});
+document.getElementById('kdvDahilCheck').addEventListener('change',function(){
+  state.meta.kdvDahil=this.checked;
+  saveStateNow();
+  renderAll();
+});
+document.getElementById('yuvarlamaSelect').addEventListener('change',function(){
+  state.meta.yuvarlama=toNum(this.value)||0;
+  saveStateNow();
+  renderAll();
+});
+document.getElementById('gecenYilGosterCheck').addEventListener('change',function(){
+  state.meta.gecenYilGoster=this.checked;
+  saveStateNow();
+  applyVisibilityToggles();
+});
+document.getElementById('kdvKarsilikGosterCheck').addEventListener('change',function(){
+  state.meta.kdvKarsilikGoster=this.checked;
+  saveStateNow();
+  applyVisibilityToggles();
+});
+
+document.getElementById('scrollToDonem').addEventListener('click',function(){
+  var p=document.getElementById('donemPanel');
+  p.open=true;
+  p.scrollIntoView({behavior:'smooth',block:'start'});
+});
+document.getElementById('scrollToArchive').addEventListener('click',function(){
+  document.getElementById('archiveSection').scrollIntoView({behavior:'smooth',block:'start'});
+});
+
+/* ============================================================
+   TOPLU % ARTIŞ — SEÇİM YARDIMCILARI
+============================================================ */
+document.querySelectorAll('[data-quick-select]').forEach(function(btn){
+  btn.addEventListener('click',function(){
+    var mode=btn.getAttribute('data-quick-select');
+    document.querySelectorAll('#bulkTableBody tr').forEach(function(tr){
+      var branchId=tr.getAttribute('data-branch');
+      var b=findBranch(branchId);
+      var chk=tr.querySelector('.bulk-check');
+      if(mode==='all') chk.checked=true;
+      else if(mode==='none') chk.checked=false;
+      else chk.checked = b && b.kategori===mode;
+    });
+  });
+});
+document.getElementById('quickPctApplyBtn').addEventListener('click',function(){
+  var val=document.getElementById('quickPctInput').value;
+  if(val==='') return;
+  document.querySelectorAll('#bulkTableBody tr').forEach(function(tr){
+    if(tr.querySelector('.bulk-check').checked){
+      tr.querySelector('.bulk-pct').value=val;
+    }
+  });
+});
+
+/* ============================================================
+   ÖNİZLEME MODALI — GENEL MEKANİZMA
+============================================================ */
+var pendingChanges=[]; // {branchId,catId,branchAd,catText,eski,yeni}
+var pendingKind='bulk';
+
+function openPreview(changes,title,kind){
+  pendingChanges=changes;
+  pendingKind=kind;
+  document.getElementById('previewTitle').textContent=title;
+  if(!changes.length){
+    document.getElementById('previewBody').innerHTML='<div class="hint">Uygulanacak bir değişiklik bulunamadı. Branş seçip bir artış yüzdesi girdiğinizden veya fiyat girilmiş satırlar olduğundan emin olun.</div>';
+    document.getElementById('previewSummary').textContent='';
+    document.getElementById('previewConfirmBtn').disabled=true;
+  } else {
+    document.getElementById('previewConfirmBtn').disabled=false;
+    var rows=changes.map(function(ch,i){
+      var diff=ch.yeni-ch.eski;
+      var diffCls = diff>0?'diff-up':(diff<0?'diff-down':'diff-flat');
+      var diffTxt = diff===0?'—':(diff>0?'+':'')+formatTL(diff);
+      return '<tr data-idx="'+i+'">'+
+        '<td><input type="checkbox" class="preview-check" checked></td>'+
+        '<td>'+esc(ch.branchAd)+'</td>'+
+        '<td class="hint" style="margin:0;">'+esc(ch.catText)+'</td>'+
+        '<td class="num">'+formatTL(ch.eski)+'</td>'+
+        '<td class="num">'+formatTL(ch.yeni)+'</td>'+
+        '<td class="num '+diffCls+'">'+diffTxt+'</td>'+
+      '</tr>';
+    }).join('');
+    document.getElementById('previewBody').innerHTML=
+      '<table class="bulk-table"><thead><tr><th></th><th>Branş</th><th>Paket</th><th>Eski</th><th>Yeni</th><th>Fark</th></tr></thead><tbody>'+rows+'</tbody></table>';
+    document.getElementById('previewSummary').textContent=changes.length+' satır etkilenecek.';
+  }
+  document.getElementById('previewModal').classList.add('show');
+}
+function closePreview(){
+  document.getElementById('previewModal').classList.remove('show');
+}
+document.getElementById('previewCloseBtn').addEventListener('click',closePreview);
+document.getElementById('previewCancelBtn').addEventListener('click',closePreview);
+document.getElementById('previewModal').addEventListener('click',function(e){
+  if(e.target===this) closePreview();
+});
+document.getElementById('previewConfirmBtn').addEventListener('click',function(){
+  var checks=document.querySelectorAll('.preview-check');
+  var applied=0;
+  checks.forEach(function(chk,i){
+    if(!chk.checked) return;
+    var ch=pendingChanges[i];
+    var b=findBranch(ch.branchId);
+    var c=b && findCat(b,ch.catId);
+    if(c){ c.fiyat=ch.yeni; applied++; }
+  });
+  saveStateNow();
+  renderAll();
+  closePreview();
+  showToast(applied+' fiyat güncellendi.','ok');
+});
+
+/* ============================================================
+   TOPLU % ARTIŞ — ÖNİZLEME OLUŞTURMA
+============================================================ */
+document.getElementById('bulkPreviewBtn').addEventListener('click',function(){
+  var changes=[];
+  document.querySelectorAll('#bulkTableBody tr').forEach(function(tr){
+    var chk=tr.querySelector('.bulk-check');
+    if(!chk.checked) return;
+    var pct=toNum(tr.querySelector('.bulk-pct').value);
+    if(pct===null) return;
+    var branchId=tr.getAttribute('data-branch');
+    var b=findBranch(branchId);
+    if(!b) return;
+    b.categories.forEach(function(c){
+      if(c.fiyat===null||c.fiyat===undefined) return;
+      var yeni=c.fiyat*(1+pct/100);
+      yeni=roundVal(yeni,state.meta.yuvarlama);
+      changes.push({
+        branchId:b.id,catId:c.id,branchAd:b.ad,
+        catText:catDisplayText(c)+' ('+(pct>0?'+':'')+pct+'%)',
+        eski:c.fiyat,yeni:yeni
+      });
+    });
+  });
+  openPreview(changes,'Toplu % Artış Önizlemesi','bulk');
+});
+
+document.getElementById('yuvarlaTumunuBtn').addEventListener('click',function(){
+  if(!state.meta.yuvarlama){ showToast('Önce bir yuvarlama adımı seçin.','err'); return; }
+  var changes=[];
+  state.branches.forEach(function(b){
+    b.categories.forEach(function(c){
+      if(c.fiyat===null||c.fiyat===undefined) return;
+      var yeni=roundVal(c.fiyat,state.meta.yuvarlama);
+      if(yeni!==c.fiyat){
+        changes.push({branchId:b.id,catId:c.id,branchAd:b.ad,catText:catDisplayText(c),eski:c.fiyat,yeni:yeni});
+      }
+    });
+  });
+  openPreview(changes,'Yuvarlama Önizlemesi','round');
+});
+
+function catDisplayText(c){
+  var hasTime = c.sure!==null && c.sure!==undefined && c.sure!=='';
+  var hasTekrar = c.tekrar!==null && c.tekrar!==undefined && c.tekrar!=='';
+  if(hasTime && hasTekrar) return c.sure+' dk × '+c.tekrar+' = '+(c.ders||'?')+' ders';
+  return (c.ders||'?')+' ders';
+}
+
+/* ============================================================
+   GEÇEN YIL
+============================================================ */
+document.getElementById('saveLastYearBtn').addEventListener('click',function(){
+  if(!confirm('Mevcut tüm fiyatlar "geçen yıl" olarak kaydedilecek ve her kartın altında referans olarak gösterilecek. Devam edilsin mi?')) return;
+  var map={};
+  state.branches.forEach(function(b){
+    b.categories.forEach(function(c){
+      if(c.fiyat===null||c.fiyat===undefined) return;
+      map[b.ad+'||'+catKeyOf(c)]=c.fiyat;
+    });
+  });
+  state.lastYear={yil:state.meta.yil,donem:activeDonemAd(),savedAt:todayStr(),map:map};
+  saveStateNow();
+  renderAll();
+  showToast('Geçen yıl bilgisi kaydedildi.','ok');
+});
+document.getElementById('clearLastYearBtn').addEventListener('click',function(){
+  if(!state.lastYear){ showToast('Zaten kayıtlı bir geçen yıl bilgisi yok.','err'); return; }
+  if(!confirm('Geçen yıl fiyat bilgisi silinsin mi?')) return;
+  state.lastYear=null;
+  saveStateNow();
+  renderAll();
+  showToast('Geçen yıl bilgisi temizlendi.','ok');
+});
+
+/* ============================================================
+   VARSAYILANA SIFIRLA / KAYDET
+============================================================ */
+document.getElementById('manualSaveBtn').addEventListener('click',function(){
+  saveStateNow();
+  showToast('Program kaydedildi.','ok');
+});
+document.getElementById('resetDefaultsBtn').addEventListener('click',function(){
+  if(!confirm('Tüm branşlar ve fiyatlar varsayılan program yapısına sıfırlanacak. Arşivleriniz ve geçen yıl kaydınız korunacaktır. Emin misiniz?')) return;
+  var d=defaultState();
+  state.branches=d.branches;
+  state.meta.kdvOrani=d.meta.kdvOrani;
+  state.meta.kdvDahil=d.meta.kdvDahil;
+  state.meta.yuvarlama=d.meta.yuvarlama;
+  saveStateNow();
+  renderAll();
+  showToast('Program varsayılana sıfırlandı.','ok');
+});
+
+/* ============================================================
+   ARŞİVLEME
+============================================================ */
+document.getElementById('archiveNowBtn').addEventListener('click',function(){
+  var suggested=state.meta.yil+' - '+activeDonemAd();
+  var title=prompt('Bu arşiv kaydı için bir başlık girin:',suggested);
+  if(!title) return;
+  var snapshot={meta:deepClone(state.meta),branches:deepClone(state.branches),lastYear:deepClone(state.lastYear)};
+  state.archives.push({id:uid('a'),title:title,date:todayStr(),snapshot:snapshot});
+  saveStateNow();
+  renderAll();
+  showToast('Arşivlendi.','ok');
+});
+
+function findArchive(id){ return state.archives.find(function(a){return a.id===id;}); }
+
+document.getElementById('archiveList').addEventListener('click',function(e){
+  var btn=e.target.closest('[data-action]');
+  if(!btn) return;
+  var itemEl=e.target.closest('.archive-item');
+  var archiveId=itemEl.getAttribute('data-archive');
+  var a=findArchive(archiveId);
+  if(!a) return;
+  var action=btn.getAttribute('data-action');
+
+  if(action==='archive-delete'){
+    if(!confirm('"'+a.title+'" arşiv kaydını silmek istediğinize emin misiniz?')) return;
+    state.archives=state.archives.filter(function(x){return x.id!==archiveId;});
+    saveStateNow();
+    renderAll();
+  } else if(action==='archive-restore'){
+    if(!confirm('"'+a.title+'" arşivindeki fiyatlar geri yüklenecek ve mevcut fiyatların üzerine yazılacak. Emin misiniz?')) return;
+    state.meta=deepClone(a.snapshot.meta);
+    state.branches=deepClone(a.snapshot.branches);
+    state.lastYear=deepClone(a.snapshot.lastYear);
+    migrateOrgToMuzik(state);
+    saveStateNow();
+    renderAll();
+    showToast('Arşiv geri yüklendi.','ok');
+  } else if(action==='archive-json'){
+    downloadJSON(a.snapshot,slugify(a.title)+'.json');
+  } else if(action==='archive-excel'){
+    exportExcel(a.snapshot,slugify(a.title));
+  } else if(action==='archive-pdf'){
+    exportPDF(a.snapshot,slugify(a.title));
+  }
+});
+
+function slugify(s){
+  return s.toString().toLowerCase()
+    .replace(/ğ/g,'g').replace(/ü/g,'u').replace(/ş/g,'s').replace(/ı/g,'i').replace(/ö/g,'o').replace(/ç/g,'c')
+    .replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'') || 'arsiv';
+}
+function downloadJSON(obj,filename){
+  var blob=new Blob([JSON.stringify(obj,null,2)],{type:'application/json'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url; a.download=filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
+
+document.getElementById('exportAllExcelBtn').addEventListener('click',function(){
+  exportExcel({meta:state.meta,branches:state.branches,lastYear:state.lastYear},'guncel-fiyat-programi-'+slugify(state.meta.yil+'-'+activeDonemAd()));
+});
+
+document.getElementById('exportFullJsonBtn').addEventListener('click',function(){
+  downloadJSON(state,'fiyat-programi-tam-yedek-'+slugify(state.meta.yil+'-'+activeDonemAd())+'.json');
+  showToast('Tam yedek indirildi.','ok');
+});
+
+document.getElementById('importJsonInput').addEventListener('change',function(e){
+  var file=e.target.files[0];
+  if(!file) return;
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    try{
+      var parsed=JSON.parse(ev.target.result);
+      if(!parsed || !parsed.branches || !parsed.meta){ throw new Error('Geçersiz dosya yapısı'); }
+      if(!confirm('Yüklenen dosya mevcut programın üzerine yazılacak. Emin misiniz?')) return;
+      state=parsed;
+      if(!state.archives) state.archives=[];
+      migrateOrgToMuzik(state);
+      saveStateNow();
+      renderAll();
+      showToast('Program dosyadan yüklendi.','ok');
+    }catch(err){
+      showToast('Dosya okunamadı: geçerli bir yedek dosyası değil.','err');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value='';
+});
+
+/* ============================================================
+   DIŞ KÜTÜPHANE YÜKLEME (Excel / PDF)
+============================================================ */
+var loadedScripts={};
+function loadScriptOnce(src){
+  if(loadedScripts[src]) return loadedScripts[src];
+  loadedScripts[src]=new Promise(function(resolve,reject){
+    var s=document.createElement('script');
+    s.src=src;
+    s.onload=resolve;
+    s.onerror=function(){ reject(new Error('Kütüphane yüklenemedi: '+src)); };
+    document.head.appendChild(s);
+  });
+  return loadedScripts[src];
+}
+
+function snapshotToRows(snapshot){
+  var meta=snapshot.meta, branches=snapshot.branches;
+  var lyMap = snapshot.lastYear && snapshot.lastYear.map ? snapshot.lastYear.map : null;
+  var showSec = meta.kdvKarsilikGoster!==false;
+  var showLY = meta.gecenYilGoster!==false && lyMap;
+  var donem=(meta.donemler||[]).find(function(d){return d.id===meta.aktifDonemId;});
+  var rows=[['Fiyat Programı — '+meta.yil+' / '+(donem?donem.ad:'')]];
+  rows.push(['KDV Oranı','%'+meta.kdvOrani, meta.kdvDahil?'(fiyatlara dahil)':'(fiyatlara hariç)']);
+  rows.push([]);
+  var header=['Branş','Kategori','Paket','Fiyat ('+(meta.kdvDahil?'KDV Dahil':'KDV Hariç')+')'];
+  if(showSec) header.push('Karşılık ('+(meta.kdvDahil?'KDV Hariç':'KDV Dahil')+')');
+  if(showLY) header.push('Geçen Yıl');
+  header.push('Paket Ders Notu');
+  rows.push(header);
+  branches.forEach(function(b){
+    var katLabel=(KATEGORILER[b.kategori]||KATEGORILER.diger).label;
+    if(!b.categories.length){
+      var blankRow=[b.ad,katLabel,'-','-'];
+      if(showSec) blankRow.push('-');
+      if(showLY) blankRow.push('-');
+      blankRow.push(b.not||'');
+      rows.push(blankRow);
+      return;
+    }
+    b.categories.forEach(function(c,i){
+      var row=[ i===0?b.ad:'', i===0?katLabel:'', catDisplayText(c), c.fiyat!=null?c.fiyat:'' ];
+      if(showSec){
+        var sec=computeSecondary(c.fiyat,meta.kdvOrani,meta.kdvDahil);
+        row.push(sec!=null?Number(sec.toFixed(2)):'');
+      }
+      if(showLY){
+        var ly=lyMap[b.ad+'||'+catKeyOf(c)];
+        row.push(ly!=null?ly:'');
+      }
+      row.push(i===0?(b.not||''):'');
+      rows.push(row);
+    });
+  });
+  return rows;
+}
+
+function exportExcel(snapshot,filenameBase){
+  showToast('Excel hazırlanıyor…');
+  loadScriptOnce('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js').then(function(){
+    var rows=snapshotToRows(snapshot);
+    var ws=XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols']=[{wch:16},{wch:12},{wch:22},{wch:16},{wch:18},{wch:34}];
+    var wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb,ws,'Fiyat Listesi');
+    XLSX.writeFile(wb,filenameBase+'.xlsx');
+    showToast('Excel indirildi.','ok');
+  }).catch(function(err){
+    console.error(err);
+    showToast('Excel oluşturulamadı — internet bağlantınızı kontrol edin.','err');
+  });
+}
+
+function exportPDF(snapshot,filenameBase){
+  showToast('PDF hazırlanıyor…');
+  Promise.all([
+    loadScriptOnce('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'),
+    loadScriptOnce('https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js')
+  ]).then(function(){
+    var jsPDF=window.jspdf.jsPDF;
+    var doc=new jsPDF();
+    var rows=snapshotToRows(snapshot);
+    var title=rows[0][0];
+    var kdvLine=rows[1].join(' ');
+    var header=rows[3];
+    var body=rows.slice(4);
+    doc.setFontSize(13);
+    doc.text(title,14,15);
+    doc.setFontSize(9);
+    doc.text(kdvLine,14,21);
+    doc.autoTable({startY:26,head:[header],body:body,styles:{fontSize:8,cellPadding:3},headStyles:{fillColor:[16,24,40]}});
+    doc.save(filenameBase+'.pdf');
+    showToast('PDF indirildi.','ok');
+  }).catch(function(err){
+    console.error(err);
+    showToast('PDF oluşturulamadı — internet bağlantınızı kontrol edin.','err');
+  });
+}
+
+function hexToRgb(hex){
+  var m=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return m ? [parseInt(m[1],16),parseInt(m[2],16),parseInt(m[3],16)] : [16,24,40];
+}
+
+function exportBranchPDF(b){
+  if(!b) return;
+  showToast('PDF hazırlanıyor…');
+  Promise.all([
+    loadScriptOnce('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'),
+    loadScriptOnce('https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js')
+  ]).then(function(){
+    var jsPDF=window.jspdf.jsPDF;
+    var doc=new jsPDF({unit:'mm',format:'a4'});
+    var meta=state.meta;
+    var idx=state.branches.findIndex(function(x){return x.id===b.id;});
+    var col=branchColor(b,idx);
+    var rgb=hexToRgb(col.base);
+    var katLabel=(KATEGORILER[b.kategori]||KATEGORILER.diger).label;
+    var donem=(meta.donemler||[]).find(function(d){return d.id===meta.aktifDonemId;});
+    var showSec=meta.kdvKarsilikGoster!==false;
+    var showLY=meta.gecenYilGoster!==false && state.lastYear && state.lastYear.map;
+
+    doc.setFillColor(rgb[0],rgb[1],rgb[2]);
+    doc.rect(0,0,210,22,'F');
+    doc.setTextColor(255,255,255);
+    doc.setFontSize(18);
+    doc.text(b.ad,14,13);
+    doc.setFontSize(10);
+    doc.text(katLabel+' · '+meta.yil+' '+(donem?donem.ad:''),14,19);
+    doc.setTextColor(30,30,30);
+
+    doc.setFontSize(9);
+    doc.text('KDV Oranı: %'+meta.kdvOrani+' ('+(meta.kdvDahil?'fiyatlara dahil':'fiyatlara hariç')+')',14,30);
+
+    var header=['Zaman Dilimi / Paket','Fiyat ('+(meta.kdvDahil?'KDV Dahil':'KDV Hariç')+')'];
+    if(showSec) header.push('Karşılık ('+(meta.kdvDahil?'KDV Hariç':'KDV Dahil')+')');
+    if(showLY) header.push('Geçen Yıl');
+
+    var body=b.categories.map(function(c){
+      var row=[catDisplayText(c), c.fiyat!=null?Number(c.fiyat).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2})+' ₺':'—'];
+      if(showSec){
+        var sec=computeSecondary(c.fiyat,meta.kdvOrani,meta.kdvDahil);
+        if(sec!=null && meta.yuvarlama) sec=roundVal(sec,meta.yuvarlama);
+        row.push(sec!=null?sec.toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2})+' ₺':'—');
+      }
+      if(showLY){
+        var ly=state.lastYear.map[b.ad+'||'+catKeyOf(c)];
+        row.push(ly!=null?Number(ly).toLocaleString('tr-TR',{minimumFractionDigits:2,maximumFractionDigits:2})+' ₺':'—');
+      }
+      return row;
+    });
+
+    doc.autoTable({
+      startY:35,
+      head:[header],
+      body:body,
+      styles:{fontSize:10,cellPadding:4},
+      headStyles:{fillColor:rgb,textColor:[255,255,255]},
+      alternateRowStyles:{fillColor:[248,249,248]},
+      margin:{left:14,right:14}
+    });
+
+    var afterTableY=doc.lastAutoTable.finalY+10;
+    if(b.not && b.not.trim()){
+      doc.setFontSize(10);
+      doc.setTextColor(rgb[0],rgb[1],rgb[2]);
+      doc.text('Paket Ders (Sözünüz):',14,afterTableY);
+      doc.setTextColor(60,60,60);
+      var noteLines=doc.splitTextToSize(b.not,182);
+      doc.text(noteLines,14,afterTableY+6);
+    }
+
+    doc.setFontSize(8);
+    doc.setTextColor(150,150,150);
+    doc.text('Oluşturulma: '+todayStr(),14,287);
+
+    doc.save(slugify(b.ad)+'-fiyat-listesi.pdf');
+    showToast('PDF indirildi.','ok');
+  }).catch(function(err){
+    console.error(err);
+    showToast('PDF oluşturulamadı — internet bağlantınızı kontrol edin.','err');
+  });
+}
+
+/* ============================================================
+   BAŞLAT
+============================================================ */
+renderAll();
+
+})();
+</script>
+</body>
+</html>
