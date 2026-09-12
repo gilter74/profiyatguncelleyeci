@@ -179,6 +179,24 @@ table.bulk-table input[type=number]{width:80px;padding:6px 8px;}
 
 /* ---------- toast ---------- */
 #toastWrap{position:fixed;bottom:20px;right:20px;display:flex;flex-direction:column;gap:8px;z-index:200;}
+
+/* ---------- floating calculator ---------- */
+.calc-panel{position:fixed;display:none;width:226px;background:#fff;border:1px solid var(--line-strong);border-radius:12px;box-shadow:0 10px 34px rgba(16,24,40,.28);z-index:180;padding:10px;}
+.calc-header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px;}
+.calc-title{font-size:12.5px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.calc-close{border:1px solid var(--line);background:#F1F3F2;border-radius:6px;padding:2px 9px;font-size:13px;font-weight:700;color:var(--muted);flex-shrink:0;}
+.calc-close:hover{background:#E6E9E7;color:var(--ink);}
+.calc-display{background:var(--ink);color:#F4F1E8;font-family:var(--font-mono);font-size:19px;text-align:right;padding:10px 11px;border-radius:8px;margin-bottom:8px;overflow-x:auto;white-space:nowrap;letter-spacing:.01em;}
+.calc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;}
+.calc-grid button{border:1px solid var(--line);border-radius:8px;background:#F7F8F7;font-size:15px;font-weight:600;padding:9px 0;color:var(--ink);}
+.calc-grid button:hover{background:#EDEFEE;}
+.calc-grid button.calc-op{background:var(--teal-bg);color:var(--teal-dark);}
+.calc-grid button.calc-op:hover{background:#D7EAE7;}
+.calc-grid button.calc-eq{background:var(--teal);color:#fff;}
+.calc-grid button.calc-eq:hover{background:var(--teal-dark);}
+.calc-grid button.calc-fn{background:var(--danger-bg);color:var(--danger);}
+.calc-grid button.calc-fn:hover{background:#F6D8D6;}
+.calc-grid button.calc-zero{grid-column:span 2;}
 .toast{background:var(--ink);color:#fff;padding:11px 16px;border-radius:8px;font-size:13.5px;box-shadow:0 6px 18px rgba(0,0,0,.25);animation:toastin .15s ease-out;}
 .toast.ok{background:var(--success);}
 .toast.err{background:var(--danger);}
@@ -376,6 +394,39 @@ footer.note{max-width:1180px;margin:30px auto 0;padding:0 24px;color:var(--muted
         <button class="btn btn-primary" id="previewConfirmBtn">Onayla ve Uygula</button>
       </div>
     </div>
+  </div>
+</div>
+
+<div id="calcPanel" class="calc-panel" role="dialog" aria-label="Hesap Makinesi">
+  <div class="calc-header">
+    <span class="calc-title" id="calcTitle">🧮 Hesap Makinesi</span>
+    <button class="calc-close" id="calcCloseBtn" title="Kapat">✕</button>
+  </div>
+  <div class="calc-display" id="calcDisplay">0</div>
+  <div class="calc-grid">
+    <button data-calc="C" class="calc-fn">C</button>
+    <button data-calc="back" class="calc-fn">⌫</button>
+    <button data-calc="pct" class="calc-fn">%</button>
+    <button data-calc="op" data-op="÷" class="calc-op">÷</button>
+
+    <button data-calc="digit" data-val="7">7</button>
+    <button data-calc="digit" data-val="8">8</button>
+    <button data-calc="digit" data-val="9">9</button>
+    <button data-calc="op" data-op="×" class="calc-op">×</button>
+
+    <button data-calc="digit" data-val="4">4</button>
+    <button data-calc="digit" data-val="5">5</button>
+    <button data-calc="digit" data-val="6">6</button>
+    <button data-calc="op" data-op="-" class="calc-op">−</button>
+
+    <button data-calc="digit" data-val="1">1</button>
+    <button data-calc="digit" data-val="2">2</button>
+    <button data-calc="digit" data-val="3">3</button>
+    <button data-calc="op" data-op="+" class="calc-op">+</button>
+
+    <button data-calc="digit" data-val="0" class="calc-zero">0</button>
+    <button data-calc="dot">.</button>
+    <button data-calc="eq" class="calc-eq">=</button>
   </div>
 </div>
 
@@ -984,6 +1035,122 @@ function showToast(msg,type){
 }
 
 /* ============================================================
+   YÜZDESEL HESAP MAKİNESİ (küçük, taşınabilir, kapanana kadar açık kalır)
+============================================================ */
+var calcState={display:'0',prev:null,op:null,waiting:false};
+
+function calcFormat(n){
+  if(n===null||n===undefined||isNaN(n)||!isFinite(n)) return 'Hata';
+  var rounded=Math.round(n*1e8)/1e8;
+  return String(rounded);
+}
+function calcUpdateDisplay(){
+  var el=document.getElementById('calcDisplay');
+  if(el) el.textContent=calcState.display;
+}
+function calcResetState(){
+  calcState.display='0';
+  calcState.prev=null;
+  calcState.op=null;
+  calcState.waiting=false;
+}
+function calcInputDigit(d){
+  if(calcState.waiting){ calcState.display=d; calcState.waiting=false; }
+  else { calcState.display=(calcState.display==='0')?d:calcState.display+d; }
+}
+function calcInputDot(){
+  if(calcState.waiting){ calcState.display='0.'; calcState.waiting=false; return; }
+  if(calcState.display.indexOf('.')===-1) calcState.display+='.';
+}
+function calcBackspace(){
+  if(calcState.waiting) return;
+  calcState.display=calcState.display.length>1?calcState.display.slice(0,-1):'0';
+}
+function calcApplyOp(a,op,b){
+  switch(op){
+    case '+': return a+b;
+    case '-': return a-b;
+    case '×': return a*b;
+    case '÷': return b===0?NaN:a/b;
+    default: return b;
+  }
+}
+function calcSetOperator(op){
+  var current=parseFloat(calcState.display);
+  if(calcState.op!==null && !calcState.waiting){
+    calcState.prev=calcApplyOp(calcState.prev,calcState.op,current);
+    calcState.display=calcFormat(calcState.prev);
+  } else {
+    calcState.prev=current;
+  }
+  calcState.op=op;
+  calcState.waiting=true;
+}
+function calcEquals(){
+  if(calcState.op===null||calcState.prev===null) return;
+  var current=parseFloat(calcState.display);
+  var result=calcApplyOp(calcState.prev,calcState.op,current);
+  calcState.display=calcFormat(result);
+  calcState.prev=null;
+  calcState.op=null;
+  calcState.waiting=true;
+}
+function calcPercent(){
+  var current=parseFloat(calcState.display);
+  if(calcState.op!==null && calcState.prev!==null){
+    var amount=calcState.prev*(current/100);
+    var result=calcApplyOp(calcState.prev,calcState.op,amount);
+    calcState.display=calcFormat(result);
+    calcState.prev=null;
+    calcState.op=null;
+    calcState.waiting=true;
+  } else {
+    calcState.display=calcFormat(current/100);
+    calcState.waiting=true;
+  }
+}
+
+document.getElementById('calcPanel').addEventListener('click',function(e){
+  var btn=e.target.closest('[data-calc]');
+  if(!btn) return;
+  var type=btn.getAttribute('data-calc');
+  if(type==='digit') calcInputDigit(btn.getAttribute('data-val'));
+  else if(type==='dot') calcInputDot();
+  else if(type==='back') calcBackspace();
+  else if(type==='C') calcResetState();
+  else if(type==='op') calcSetOperator(btn.getAttribute('data-op'));
+  else if(type==='eq') calcEquals();
+  else if(type==='pct') calcPercent();
+  calcUpdateDisplay();
+});
+document.getElementById('calcCloseBtn').addEventListener('click',function(){
+  document.getElementById('calcPanel').style.display='none';
+});
+
+function openCalcPanel(b,anchorEl){
+  if(!b || !anchorEl) return;
+  var panel=document.getElementById('calcPanel');
+  document.getElementById('calcTitle').textContent='🧮 '+b.ad;
+  calcResetState();
+  calcUpdateDisplay();
+  panel.style.display='block';
+  var panelW=226, panelH=336, margin=10;
+  var rect=anchorEl.getBoundingClientRect();
+  var left=rect.left;
+  var top=rect.bottom+8;
+  if(left+panelW>window.innerWidth-margin) left=window.innerWidth-panelW-margin;
+  if(left<margin) left=margin;
+  if(top+panelH>window.innerHeight-margin){
+    var above=rect.top-panelH-8;
+    top=above>=margin?above:Math.max(margin,window.innerHeight-panelH-margin);
+  }
+  if(top<margin) top=margin;
+  panel.style.left=left+'px';
+  panel.style.top=top+'px';
+  panel.setAttribute('data-open-branch',b.id);
+}
+
+/* ============================================================
    RENDER: ÜST BAR / DÖNEM
 ============================================================ */
 function activeDonemAd(){
@@ -1110,6 +1277,7 @@ function renderBranchCard(b,idx){
       '</div>'+
       '<div class="branch-controls">'+
         '<button class="btn-icon" data-action="branch-pdf" title="Bu branşı tek sayfa PDF olarak indir">📄 PDF</button>'+
+        '<button class="btn-icon" data-action="branch-calc" title="Hesap makinesi (% hesaplama)">🧮</button>'+
         '<button class="btn-icon" data-action="move-branch-up" title="Yukarı taşı">↑</button>'+
         '<button class="btn-icon" data-action="move-branch-down" title="Aşağı taşı">↓</button>'+
         '<button class="btn-icon" data-action="delete-branch" title="Branşı sil">🗑</button>'+
@@ -1352,6 +1520,7 @@ document.getElementById('branchesContainer').addEventListener('click',function(e
   else if(action==='move-branch-up') moveBranch(branchId,-1);
   else if(action==='move-branch-down') moveBranch(branchId,1);
   else if(action==='branch-pdf') exportBranchPDF(findBranch(branchId));
+  else if(action==='branch-calc') openCalcPanel(findBranch(branchId),actionBtn);
   else if(action==='delete-artis') deleteArtisEntry(branchId,actionBtn.getAttribute('data-artis'));
 });
 
