@@ -875,7 +875,7 @@ function todayStr(){
 function todayDateStr(){
   return new Date().toLocaleDateString('tr-TR');
 }
-function deepClone(o){ return JSON.parse(JSON.stringify(o)); }
+function deepClone(o){ return o===undefined ? undefined : JSON.parse(JSON.stringify(o)); }
 
 /* Yükleme / geri yükleme / sıfırlama gibi mevcut verinin üzerine yazılacağı
    işlemlerden HEMEN ÖNCE çağrılır: o anki durumu otomatik olarak arşive
@@ -1003,6 +1003,8 @@ function loadState(){
     var parsed=JSON.parse(raw);
     if(!parsed || !parsed.branches || !parsed.meta) return defaultState();
     migrateOrgToMuzik(parsed);
+    if(parsed.lastYear===undefined) parsed.lastYear=null;
+    if(!Array.isArray(parsed.archives)) parsed.archives=[];
     return parsed;
   }catch(e){
     console.error('State yüklenemedi, varsayılana dönülüyor.',e);
