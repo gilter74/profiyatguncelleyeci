@@ -348,11 +348,11 @@ footer.note{max-width:1180px;margin:30px auto 0;padding:0 24px;color:var(--muted
       <button class="btn btn-primary" id="archiveNowBtn">Şimdiki Durumu Arşivle</button>
       <button class="btn btn-gold" id="exportAllExcelBtn">Tüm Programı Excel Olarak İndir</button>
       <button class="btn btn-outline" id="exportFullJsonBtn">Tüm Programı JSON Olarak İndir</button>
-      <label class="btn btn-outline" style="margin:0;">Dosyadan Yükle (JSON)
-        <input type="file" id="importJsonInput" accept="application/json" style="display:none;">
+      <label class="btn btn-outline" style="margin:0;">Dosyadan Yükle (JSON / Excel)
+        <input type="file" id="importJsonInput" accept=".json,.xlsx,.xls,application/json,text/plain,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,*/*" style="display:none;">
       </label>
     </div>
-    <div class="hint">"Tüm Programı Excel Olarak İndir" güncel/canlı tüm branş ve fiyatları tek Excel dosyası olarak indirir. Excel, PDF (branş PDF'i dahil) ve JSON indirme/yükleme işlemlerinin tamamı tamamen çevrimdışı çalışır — internet bağlantısı gerekmez.</div>
+    <div class="hint">"Tüm Programı Excel Olarak İndir" güncel/canlı tüm branş ve fiyatları tek Excel dosyası olarak indirir. Excel, PDF (branş PDF'i dahil) ve JSON indirme/yükleme işlemlerinin tamamı tamamen çevrimdışı çalışır — internet bağlantısı gerekmez. <b>Geri yükleme için</b> bu programdan indirilmiş <b>JSON</b> veya <b>Excel (.xlsx)</b> dosyası kullanılabilir (PDF yalnızca yazdırma/paylaşma içindir, geri yüklenemez).</div>
     <div id="archiveList" style="margin-top:10px;"></div>
   </div>
 
@@ -884,6 +884,11 @@ function autoArchiveCurrentState(title){
   if(!state.archives) state.archives=[];
   var snapshot={meta:deepClone(state.meta),branches:deepClone(state.branches),lastYear:deepClone(state.lastYear)};
   state.archives.push({id:uid('a'),title:title,date:todayStr(),snapshot:snapshot,otomatik:true});
+  var autos=state.archives.filter(function(a){return a.otomatik;});
+  if(autos.length>10){
+    var drop=autos.slice(0,autos.length-10).map(function(a){return a.id;});
+    state.archives=state.archives.filter(function(a){return drop.indexOf(a.id)===-1;});
+  }
 }
 /* İki arşiv listesini kayıp yaşanmadan birleştirir: mevcut listedeki hiçbir
    kayıt silinmez, gelen dosyadaki (varsa) kayıtlardan henüz olmayanlar eklenir. */
@@ -1011,10 +1016,26 @@ function migrateOrgToMuzik(st){
   });
 }
 function saveStateNow(){
-  try{
-    localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
-  }catch(e){
-    showToast('Kaydetme başarısız: tarayıcı depolama alanı dolu olabilir.','err');
+  function tryWrite(){ localStorage.setItem(STORAGE_KEY,JSON.stringify(state)); }
+  try{ tryWrite(); return true; }
+  catch(e){
+    /* Depolama dolduysa en eski OTOMATİK yedekleri azaltıp tekrar dene */
+    try{
+      if(state.archives){
+        var keep=3;
+        var autos=state.archives.filter(function(a){return a.otomatik;});
+        if(autos.length>keep){
+          var drop=autos.slice(0,autos.length-keep).map(function(a){return a.id;});
+          state.archives=state.archives.filter(function(a){return drop.indexOf(a.id)===-1;});
+        }
+      }
+      tryWrite();
+      showToast('Depolama dolu olduğundan eski otomatik yedekler temizlendi.','ok');
+      return true;
+    }catch(e2){
+      showToast('Kaydetme başarısız: tarayıcı depolama alanı dolu. Önce JSON yedeği indirin, eski arşivleri silin.','err');
+      return false;
+    }
   }
 }
 function saveStateDebounced(){
@@ -1831,15 +1852,22 @@ document.getElementById('archiveList').addEventListener('click',function(e){
     saveStateNow();
     renderAll();
   } else if(action==='archive-restore'){
+    if(!a.snapshot || !a.snapshot.meta || !a.snapshot.branches){ showToast('Bu arşiv kaydı bozuk, geri yüklenemedi.','err'); return; }
     if(!confirm('"'+a.title+'" arşivindeki fiyatlar geri yüklenecek ve mevcut fiyatların üzerine yazılacak (mevcut durumunuz önce otomatik olarak arşive kaydedilecektir). Emin misiniz?')) return;
-    autoArchiveCurrentState('Otomatik Yedek — Geri Yükleme Öncesi ('+todayStr()+')');
-    state.meta=deepClone(a.snapshot.meta);
-    state.branches=deepClone(a.snapshot.branches);
-    state.lastYear=deepClone(a.snapshot.lastYear);
-    migrateOrgToMuzik(state);
-    saveStateNow();
-    renderAll();
-    showToast('Arşiv geri yüklendi. Önceki durumunuz arşive otomatik kaydedildi.','ok');
+    try{
+      var snap=deepClone(a.snapshot);
+      autoArchiveCurrentState('Otomatik Yedek — Geri Yükleme Öncesi ('+todayStr()+')');
+      state.meta=snap.meta;
+      state.branches=snap.branches;
+      state.lastYear=snap.lastYear||null;
+      migrateOrgToMuzik(state);
+      var ok=saveStateNow();
+      renderAll();
+      if(ok) showToast('Arşiv geri yüklendi. Önceki durumunuz arşive otomatik kaydedildi.','ok');
+    }catch(err){
+      console.error(err);
+      showToast('Geri yükleme başarısız: '+(err&&err.message?err.message:'bilinmeyen hata'),'err');
+    }
   } else if(action==='archive-json'){
     downloadJSON(a.snapshot,slugify(a.title)+'.json');
   } else if(action==='archive-excel'){
@@ -1872,29 +1900,95 @@ document.getElementById('exportFullJsonBtn').addEventListener('click',function()
   showToast('Tam yedek indirildi.','ok');
 });
 
-document.getElementById('importJsonInput').addEventListener('change',function(e){
-  var file=e.target.files[0];
-  if(!file) return;
-  var reader=new FileReader();
-  reader.onload=function(ev){
-    try{
-      var parsed=JSON.parse(ev.target.result);
-      if(!parsed || !parsed.branches || !parsed.meta){ throw new Error('Geçersiz dosya yapısı'); }
-      if(!confirm('Yüklenen dosya mevcut programın üzerine yazılacak (mevcut durumunuz ve arşivleriniz önce otomatik olarak arşive kaydedilecektir). Emin misiniz?')) return;
-      autoArchiveCurrentState('Otomatik Yedek — Dosya Yükleme Öncesi ('+todayStr()+')');
-      var mergedArchives=mergeArchives(state.archives,parsed.archives);
-      state=parsed;
-      state.archives=mergedArchives;
-      migrateOrgToMuzik(state);
-      saveStateNow();
-      renderAll();
-      showToast('Program dosyadan yüklendi. Önceki durumunuz arşive otomatik kaydedildi.','ok');
-    }catch(err){
-      showToast('Dosya okunamadı: geçerli bir yedek dosyası değil.','err');
-    }
+/* ---- Yedek dosyasından state çıkarma (JSON veya Excel) ---- */
+function extractBackup(obj){
+  if(!obj || typeof obj!=='object') return null;
+  if(obj.branches && obj.meta) return obj;                       // tam yedek veya arşiv JSON'u
+  if(obj.snapshot && obj.snapshot.branches && obj.snapshot.meta) return obj.snapshot; // tek arşiv kaydı
+  if(obj.state && obj.state.branches && obj.state.meta) return obj.state;
+  if(Array.isArray(obj.archives) && obj.archives.length){        // yalnızca arşiv listesi
+    var last=obj.archives[obj.archives.length-1];
+    if(last && last.snapshot && last.snapshot.branches) return last.snapshot;
+  }
+  return null;
+}
+function parseJsonText(txt){
+  txt=String(txt).replace(/^﻿/,'').trim();
+  return JSON.parse(txt);
+}
+function readBackupFromExcel(buf){
+  var wb=XLSX.read(buf,{type:'array'});
+  var ws=wb.Sheets['_yedek'];
+  if(!ws) return null;
+  var rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+  var txt=rows.map(function(r){return r[0]==null?'':String(r[0]);}).join('');
+  return parseJsonText(txt);
+}
+function applyImportedBackup(parsed,fileName){
+  var data=extractBackup(parsed);
+  if(!data) throw new Error('NOT_BACKUP');
+  if(!data.meta.donemler || !data.meta.donemler.length){
+    var d0={id:uid('d'),ad:'Yeni Dönem'};
+    data.meta.donemler=[d0]; data.meta.aktifDonemId=d0.id;
+  }
+  if(!Array.isArray(data.branches)) throw new Error('NOT_BACKUP');
+  data.branches.forEach(function(b){ if(!Array.isArray(b.categories)) b.categories=[]; });
+  if(!confirm('"'+fileName+'" dosyası mevcut programın üzerine yazılacak (mevcut durumunuz ve arşivleriniz önce otomatik olarak arşive kaydedilecektir). Emin misiniz?')) return false;
+  autoArchiveCurrentState('Otomatik Yedek — Dosya Yükleme Öncesi ('+todayStr()+')');
+  var mergedArchives=mergeArchives(state.archives,data.archives);
+  state={
+    version:data.version||1,
+    meta:data.meta,
+    branches:data.branches,
+    lastYear:data.lastYear||null,
+    archives:mergedArchives
   };
-  reader.readAsText(file);
-  e.target.value='';
+  migrateOrgToMuzik(state);
+  var ok=saveStateNow();
+  renderAll();
+  if(ok) showToast('Program dosyadan yüklendi. Önceki durumunuz arşive otomatik kaydedildi.','ok');
+  return true;
+}
+document.getElementById('importJsonInput').addEventListener('change',function(e){
+  var input=e.target;
+  var file=input.files && input.files[0];
+  if(!file) return;
+  var name=file.name||'dosya';
+  var lower=name.toLowerCase();
+  var reader=new FileReader();
+  function fail(err){
+    console.error(err);
+    var m=err&&err.message;
+    if(m==='NOT_BACKUP') showToast('Bu dosya bu programın yedeği değil. Programdan indirilmiş JSON veya Excel dosyasını seçin.','err');
+    else if(m==='EXCEL_NO_BACKUP') showToast('Bu Excel dosyası eski sürümde indirilmiş; içinde geri yüklenebilir veri yok. JSON yedeğini veya Excel dosyasını yeniden indirilmiş sürümden kullanın.','err');
+    else if(err && err.name==='SyntaxError') showToast('Dosya okunamadı: JSON bozuk veya eksik.','err');
+    else showToast('Yükleme başarısız: '+(m||'bilinmeyen hata'),'err');
+  }
+  function done(){ input.value=''; }
+  if(/\.(xlsx|xls)$/.test(lower)){
+    reader.onload=function(ev){
+      try{
+        var parsed=readBackupFromExcel(new Uint8Array(ev.target.result));
+        if(!parsed) throw new Error('EXCEL_NO_BACKUP');
+        applyImportedBackup(parsed,name);
+      }catch(err){ fail(err); }
+      done();
+    };
+    reader.onerror=function(){ fail(new Error('Dosya okunamadı')); done(); };
+    reader.readAsArrayBuffer(file);
+  } else if(/\.pdf$/.test(lower)){
+    showToast('PDF dosyası geri yüklenemez. JSON veya Excel (.xlsx) yedeği seçin.','err');
+    done();
+  } else {
+    reader.onload=function(ev){
+      try{
+        applyImportedBackup(parseJsonText(ev.target.result),name);
+      }catch(err){ fail(err); }
+      done();
+    };
+    reader.onerror=function(){ fail(new Error('Dosya okunamadı')); done(); };
+    reader.readAsText(file,'utf-8');
+  }
 });
 
 /* ============================================================
@@ -1980,6 +2074,12 @@ function exportExcel(snapshot,filenameBase){
     ws['!cols']=[{wch:16},{wch:12},{wch:22},{wch:16},{wch:18},{wch:34}];
     var wb=XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb,ws,'Fiyat Listesi');
+    /* Geri yüklenebilmesi için tüm veri gizli '_yedek' sayfasına JSON olarak gömülür */
+    var js=JSON.stringify({version:1,meta:snapshot.meta,branches:snapshot.branches,lastYear:snapshot.lastYear||null});
+    var chunks=[]; for(var i=0;i<js.length;i+=30000) chunks.push([js.slice(i,i+30000)]);
+    var wsb=XLSX.utils.aoa_to_sheet(chunks);
+    XLSX.utils.book_append_sheet(wb,wsb,'_yedek');
+    wb.Workbook={Sheets:[{Hidden:0},{Hidden:1}]};
     XLSX.writeFile(wb,filenameBase+'.xlsx');
     showToast('Excel indirildi.','ok');
   }catch(err){
